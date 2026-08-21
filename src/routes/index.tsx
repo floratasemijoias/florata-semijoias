@@ -15,18 +15,19 @@ import type { Produto } from "@/lib/florata";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Florata | Floricultura boutique — flores e arranjos" },
+      { title: "Florata | Semijoias — catálogo online" },
       {
         name: "description",
         content:
-          "Catálogo online da Florata: buquês, arranjos e plantas selecionadas. Escolha, monte sua sacola e finalize o pedido pelo WhatsApp.",
+          "Catálogo online de semijoias Florata: brincos, colares, anéis e pulseiras. Monte sua sacola e finalize o pedido pelo WhatsApp.",
       },
-      { property: "og:title", content: "Florata | Floricultura boutique" },
+      { property: "og:title", content: "Florata | Semijoias" },
       {
         property: "og:description",
         content:
-          "Buquês, arranjos e plantas selecionadas. Monte sua sacola e finalize o pedido pelo WhatsApp.",
+          "Semijoias selecionadas: brincos, colares, anéis e pulseiras. Pedido finalizado pelo WhatsApp.",
       },
+
     ],
   }),
   component: Catalogo,
