@@ -66,7 +66,7 @@ export function SacolaSheet({
   const [pagamento, setPagamento] = useState<Pagamento>("Pix");
   const [parcelas, setParcelas] = useState("1x");
   const [data, setData] = useState("");
-  const [horario, setHorario] = useState(BLOCOS_HORARIO[0]);
+  const [horario, setHorario] = useState<string>(BLOCOS_HORARIO[0] ?? "");
 
   const hoje = new Date().toISOString().slice(0, 10);
 
