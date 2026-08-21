@@ -19,7 +19,7 @@ export function Header({ onAbrirSacola }: { onAbrirSacola: () => void }) {
               Florata
             </span>
             <span className="block text-[10px] tracking-brand text-muted-foreground uppercase">
-              Floricultura
+              Semijoias
             </span>
           </span>
         </Link>
