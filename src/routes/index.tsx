@@ -96,15 +96,16 @@ function Catalogo() {
       <section className="border-b border-border bg-accent/25">
         <div className="mx-auto max-w-5xl px-4 py-10 text-center sm:py-14">
           <p className="text-[10px] tracking-brand text-muted-foreground uppercase">
-            Flores selecionadas
+            Semijoias selecionadas
           </p>
           <h1 className="mt-3 font-display text-4xl leading-tight font-semibold text-primary sm:text-5xl">
-            Arranjos que <span className="text-gold-gradient">encantam</span>
+            Peças que <span className="text-gold-gradient">brilham</span> com você
           </h1>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Escolha seus favoritos, monte a sacola e finalize o pedido pelo WhatsApp. Entrega
-            combinada com carinho.
+            Escolha suas favoritas, monte a sacola e finalize o pedido pelo WhatsApp. Entrega
+            combinada com todo cuidado.
           </p>
+
         </div>
       </section>
 
