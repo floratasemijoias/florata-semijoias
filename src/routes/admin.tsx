@@ -151,7 +151,10 @@ function Painel() {
       .from("produtos")
       .update({ disponivel: !p.disponivel })
       .eq("id", p.id);
-    if (error) return toast.error("Não foi possível atualizar");
+    if (error) {
+      toast.error("Não foi possível atualizar");
+      return;
+    }
     toast.success(!p.disponivel ? "Produto disponível" : "Produto marcado como esgotado");
     invalidar();
   }
@@ -159,7 +162,10 @@ function Painel() {
   async function remover(p: Produto) {
     if (!confirm(`Remover "${p.nome}"?`)) return;
     const { error } = await supabase.from("produtos").delete().eq("id", p.id);
-    if (error) return toast.error("Não foi possível remover");
+    if (error) {
+      toast.error("Não foi possível remover");
+      return;
+    }
     toast.success("Produto removido");
     invalidar();
   }
