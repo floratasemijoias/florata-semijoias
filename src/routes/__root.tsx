@@ -80,17 +80,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Florata | Floricultura boutique" },
+      { title: "Florata | Semijoias" },
       {
         name: "description",
         content:
-          "Catálogo online da Florata: flores, buquês e arranjos com pedido finalizado pelo WhatsApp.",
+          "Catálogo online de semijoias Florata com pedido finalizado pelo WhatsApp.",
       },
-      { property: "og:title", content: "Florata | Floricultura boutique" },
+      { property: "og:title", content: "Florata | Semijoias" },
       {
         property: "og:description",
-        content: "Flores, buquês e arranjos selecionados. Pedido pelo WhatsApp.",
+        content: "Semijoias selecionadas. Pedido pelo WhatsApp.",
       },
+
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
