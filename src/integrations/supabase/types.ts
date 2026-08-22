@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          alt: string | null
+          ativo: boolean
+          atualizado_em: string
+          criado_em: string
+          id: string
+          imagem_url: string
+          link: string | null
+          ordem: number
+        }
+        Insert: {
+          alt?: string | null
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          imagem_url: string
+          link?: string | null
+          ordem?: number
+        }
+        Update: {
+          alt?: string | null
+          ativo?: boolean
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          imagem_url?: string
+          link?: string | null
+          ordem?: number
+        }
+        Relationships: []
+      }
       produtos: {
         Row: {
           categoria: string
