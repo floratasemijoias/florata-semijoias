@@ -8,7 +8,7 @@ export function WhatsappFab({ deslocado = false }: { deslocado?: boolean }) {
       rel="noopener noreferrer"
       aria-label="Falar no WhatsApp"
       className={`fixed right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-[#25D366] shadow-soft transition-transform hover:scale-105 ${
-        deslocado ? "bottom-24" : "bottom-5"
+        deslocado ? "bottom-[106px]" : "bottom-[30px]"
       }`}
     >
       <svg viewBox="0 0 32 32" className="h-7 w-7 fill-white" aria-hidden="true">
