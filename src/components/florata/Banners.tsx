@@ -37,7 +37,7 @@ export function Banners() {
   });
 
   const slides = banners ?? [];
-  const total = slides.length + 1;
+  const total = slides.length;
 
   useEffect(() => {
     if (!api) return;
