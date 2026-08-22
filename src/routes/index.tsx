@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Header } from "@/components/florata/Header";
+import { Banners } from "@/components/florata/Banners";
 import { Filtros } from "@/components/florata/Filtros";
 import { ProdutoCard } from "@/components/florata/ProdutoCard";
 import { ProdutoDialog } from "@/components/florata/ProdutoDialog";
@@ -27,7 +28,6 @@ export const Route = createFileRoute("/")({
         content:
           "Semijoias selecionadas: brincos, colares, anéis e pulseiras. Pedido finalizado pelo WhatsApp.",
       },
-
     ],
   }),
   component: Catalogo,
@@ -50,7 +50,6 @@ function Catalogo() {
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [selecionado, setSelecionado] = useState<Produto | null>(null);
   const [categoria, setCategoria] = useState("Todas");
-  const [tamanhos, setTamanhos] = useState<string[]>([]);
 
   const lista = produtos ?? [];
 
@@ -59,73 +58,19 @@ function Catalogo() {
     [lista],
   );
 
-  const porCategoria = useMemo(
+  const filtrados = useMemo(
     () => (categoria === "Todas" ? lista : lista.filter((p) => p.categoria === categoria)),
     [lista, categoria],
   );
-
-  const tamanhosDisponiveis = useMemo(
-    () =>
-      Array.from(new Set(porCategoria.map((p) => p.tamanho).filter((t): t is string => !!t))).sort(),
-    [porCategoria],
-  );
-
-  const limitePreco = useMemo<[number, number]>(() => {
-    if (porCategoria.length === 0) return [0, 500];
-    const precos = porCategoria.map((p) => Number(p.preco));
-    return [Math.floor(Math.min(...precos)), Math.max(Math.ceil(Math.max(...precos)), 1)];
-  }, [porCategoria]);
-
-  const [faixaPreco, setFaixaPreco] = useState<[number, number]>(limitePreco);
-
-  useEffect(() => {
-    setFaixaPreco(limitePreco);
-    setTamanhos([]);
-  }, [categoria, limitePreco[0], limitePreco[1]]);
-
-  const filtrados = porCategoria.filter((p) => {
-    const preco = Number(p.preco);
-    const okPreco = preco >= faixaPreco[0] && preco <= faixaPreco[1];
-    const okTamanho = tamanhos.length === 0 || (p.tamanho ? tamanhos.includes(p.tamanho) : false);
-    return okPreco && okTamanho;
-  });
 
   return (
     <div className="min-h-screen bg-background pb-28">
       <Header onAbrirSacola={() => setSacolaAberta(true)} />
 
-      <section className="border-b border-border bg-accent/25">
-        <div className="mx-auto max-w-5xl px-4 py-10 text-center sm:py-14">
-          <p className="text-[10px] tracking-brand text-muted-foreground uppercase">
-            Semijoias selecionadas
-          </p>
-          <h1 className="mt-3 font-display text-4xl leading-tight font-semibold text-primary sm:text-5xl">
-            Peças que <span className="text-gold-gradient">brilham</span> com você
-          </h1>
-          <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Escolha suas favoritas, monte a sacola e finalize o pedido pelo WhatsApp. Entrega
-            combinada com todo cuidado.
-          </p>
-
-        </div>
-      </section>
+      <Banners />
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        <Filtros
-          categorias={categorias}
-          categoriaAtiva={categoria}
-          onCategoria={setCategoria}
-          tamanhos={tamanhosDisponiveis}
-          tamanhosAtivos={tamanhos}
-          onToggleTamanho={(t) =>
-            setTamanhos((atual) =>
-              atual.includes(t) ? atual.filter((x) => x !== t) : [...atual, t],
-            )
-          }
-          limitePreco={limitePreco}
-          faixaPreco={faixaPreco}
-          onFaixaPreco={setFaixaPreco}
-        />
+        <Filtros categorias={categorias} categoriaAtiva={categoria} onCategoria={setCategoria} />
 
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -135,7 +80,7 @@ function Catalogo() {
           </div>
         ) : filtrados.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
-            Nenhum produto encontrado com esses filtros.
+            Nenhum produto encontrado nesta categoria.
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
