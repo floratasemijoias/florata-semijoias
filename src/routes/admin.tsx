@@ -272,6 +272,10 @@ function Painel() {
         )}
       </main>
 
+      <div className="mx-auto max-w-5xl px-4 pb-10">
+        <AdminBanners />
+      </div>
+
       <FormularioProduto
         form={form}
         onFechar={() => setForm(null)}
