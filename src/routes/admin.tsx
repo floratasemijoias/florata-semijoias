@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminBanners } from "@/components/florata/AdminBanners";
 import { supabase } from "@/integrations/supabase/client";
 import { formatarPreco, type Produto } from "@/lib/florata";
 
@@ -271,6 +272,10 @@ function Painel() {
           </ul>
         )}
       </main>
+
+      <div className="mx-auto max-w-5xl px-4 pb-10">
+        <AdminBanners />
+      </div>
 
       <FormularioProduto
         form={form}
