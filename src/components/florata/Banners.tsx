@@ -17,24 +17,6 @@ export type Banner = {
   ativo: boolean;
 };
 
-function HeroTexto() {
-  return (
-    <div className="flex h-full w-full items-center justify-center bg-accent/25 px-4 py-10 text-center sm:py-14">
-      <div className="mx-auto max-w-xl">
-        <p className="text-[10px] tracking-brand text-muted-foreground uppercase">
-          Semijoias selecionadas
-        </p>
-        <h1 className="mt-3 font-display text-4xl leading-tight font-semibold text-primary sm:text-5xl">
-          Peças que <span className="text-gold-gradient">brilham</span> com você
-        </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
-          Escolha suas favoritas, monte a sacola e finalize o pedido pelo WhatsApp. Entrega combinada
-          com todo cuidado.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export function Banners() {
   const [api, setApi] = useState<CarouselApi>();
@@ -55,7 +37,7 @@ export function Banners() {
   });
 
   const slides = banners ?? [];
-  const total = slides.length + 1;
+  const total = slides.length;
 
   useEffect(() => {
     if (!api) return;
