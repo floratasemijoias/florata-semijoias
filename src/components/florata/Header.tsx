@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
-import logo from "@/assets/florata-logo.png.asset.json";
+import logo from "@/assets/florata-logo-2.png.asset.json";
 import { useSacola } from "@/lib/carrinho";
 
 export function Header({ onAbrirSacola }: { onAbrirSacola: () => void }) {
