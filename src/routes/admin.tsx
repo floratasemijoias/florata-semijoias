@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Loader2, LogOut, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -129,6 +129,9 @@ const vazio: FormProduto = {
 function Painel() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormProduto | null>(null);
+  const [busca, setBusca] = useState("");
+  const [categoria, setCategoria] = useState("todas");
+  const [ordem, setOrdem] = useState("recentes");
 
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos-admin"],
@@ -141,6 +144,30 @@ function Painel() {
       return (data ?? []) as Produto[];
     },
   });
+
+  const categorias = useMemo(
+    () => Array.from(new Set((produtos ?? []).map((p) => p.categoria).filter(Boolean))).sort(),
+    [produtos],
+  );
+
+  const listaFiltrada = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    let itens = (produtos ?? []).filter((p) => {
+      const casaBusca =
+        !termo ||
+        p.nome.toLowerCase().includes(termo) ||
+        p.categoria.toLowerCase().includes(termo) ||
+        (p.descricao ?? "").toLowerCase().includes(termo);
+      const casaCategoria = categoria === "todas" || p.categoria === categoria;
+      return casaBusca && casaCategoria;
+    });
+    itens = [...itens];
+    if (ordem === "preco-asc") itens.sort((a, b) => Number(a.preco) - Number(b.preco));
+    else if (ordem === "preco-desc") itens.sort((a, b) => Number(b.preco) - Number(a.preco));
+    else if (ordem === "az") itens.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    else if (ordem === "za") itens.sort((a, b) => b.nome.localeCompare(a.nome, "pt-BR"));
+    return itens;
+  }, [produtos, busca, categoria, ordem]);
 
   function invalidar() {
     queryClient.invalidateQueries({ queryKey: ["produtos-admin"] });
@@ -202,15 +229,55 @@ function Painel() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+          <div className="relative">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por nome, categoria ou descrição"
+              className="pl-9"
+              aria-label="Buscar produtos"
+            />
+          </div>
+          <select
+            aria-label="Filtrar por categoria"
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="todas">Todas as categorias</option>
+            {categorias.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Ordenar produtos"
+            value={ordem}
+            onChange={(e) => setOrdem(e.target.value)}
+            className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="recentes">Mais recentes</option>
+            <option value="az">Nome (A-Z)</option>
+            <option value="za">Nome (Z-A)</option>
+            <option value="preco-asc">Menor preço</option>
+            <option value="preco-desc">Maior preço</option>
+          </select>
+        </div>
+
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Carregando...</p>
-        ) : (produtos ?? []).length === 0 ? (
+        ) : listaFiltrada.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
-            Nenhum produto cadastrado ainda.
+            {(produtos ?? []).length === 0
+              ? "Nenhum produto cadastrado ainda."
+              : "Nenhum produto encontrado com esses filtros."}
           </p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-            {(produtos ?? []).map((p) => (
+            {listaFiltrada.map((p) => (
               <li key={p.id} className="flex items-center gap-3 bg-card p-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-accent/40">
                   {p.imagem_url && (
