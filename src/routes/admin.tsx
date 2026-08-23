@@ -229,15 +229,55 @@ function Painel() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+          <div className="relative">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por nome, categoria ou descrição"
+              className="pl-9"
+              aria-label="Buscar produtos"
+            />
+          </div>
+          <select
+            aria-label="Filtrar por categoria"
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+            className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="todas">Todas as categorias</option>
+            {categorias.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Ordenar produtos"
+            value={ordem}
+            onChange={(e) => setOrdem(e.target.value)}
+            className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="recentes">Mais recentes</option>
+            <option value="az">Nome (A-Z)</option>
+            <option value="za">Nome (Z-A)</option>
+            <option value="preco-asc">Menor preço</option>
+            <option value="preco-desc">Maior preço</option>
+          </select>
+        </div>
+
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Carregando...</p>
-        ) : (produtos ?? []).length === 0 ? (
+        ) : listaFiltrada.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
-            Nenhum produto cadastrado ainda.
+            {(produtos ?? []).length === 0
+              ? "Nenhum produto cadastrado ainda."
+              : "Nenhum produto encontrado com esses filtros."}
           </p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-            {(produtos ?? []).map((p) => (
+            {listaFiltrada.map((p) => (
               <li key={p.id} className="flex items-center gap-3 bg-card p-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-accent/40">
                   {p.imagem_url && (
