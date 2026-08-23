@@ -129,6 +129,9 @@ const vazio: FormProduto = {
 function Painel() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormProduto | null>(null);
+  const [busca, setBusca] = useState("");
+  const [categoria, setCategoria] = useState("todas");
+  const [ordem, setOrdem] = useState("recentes");
 
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos-admin"],
