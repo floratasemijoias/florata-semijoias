@@ -40,7 +40,7 @@
   --color-gold: var(--gold);
   --color-gold-light: var(--gold-light);
   --color-gold-foreground: var(--gold-foreground);
-  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-display: "Cormorant Garamond", "Montserrat", Georgia, serif;
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 
