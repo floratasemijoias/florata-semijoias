@@ -24,20 +24,22 @@ export function BarraSacola({ onAbrir }: { onAbrir: () => void }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center gap-3">
-        <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/60 text-primary">
-          <ShoppingBag className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-gold-gradient px-1 text-[11px] font-semibold text-gold-foreground">
-            {totalItens}
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-2">
+        <div className="flex items-center justify-center gap-3">
+          <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent/60 text-primary">
+            <ShoppingBag className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-gold-gradient px-1 text-[11px] font-semibold text-gold-foreground">
+              {totalItens}
+            </span>
           </span>
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-xs text-muted-foreground">
-            {totalItens} {totalItens === 1 ? "item" : "itens"} na sacola
-          </p>
-          <p className="truncate text-sm font-medium text-primary">{formatarPreco(totalValor)}</p>
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">
+              {totalItens} {totalItens === 1 ? "item" : "itens"} na sacola
+            </p>
+            <p className="text-sm font-medium text-primary">{formatarPreco(totalValor)}</p>
+          </div>
         </div>
-        <Button variant="gold" onClick={onAbrir} className="shrink-0">
+        <Button variant="gold" onClick={onAbrir} className="w-full max-w-xs">
           Ver carrinho
         </Button>
       </div>
