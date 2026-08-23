@@ -55,15 +55,12 @@ export function Banners() {
     return () => clearInterval(id);
   }, [api, total]);
 
+  if (total === 0) return null;
+
   return (
     <section className="border-b border-border">
       <Carousel setApi={setApi} opts={{ loop: true }}>
         <CarouselContent className="ml-0">
-          <CarouselItem className="pl-0">
-            <div className="min-h-[260px] sm:min-h-[340px]">
-              <HeroTexto />
-            </div>
-          </CarouselItem>
           {slides.map((b) => {
             const img = (
               <img
