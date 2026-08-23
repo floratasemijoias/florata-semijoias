@@ -10,9 +10,8 @@ export function Header({ onAbrirSacola }: { onAbrirSacola: () => void }) {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur">
       <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3">
         <Link to="/" className="flex min-w-0 items-center gap-3">
-          {/* Placeholder de logo — substitua o arquivo do logo quando quiser */}
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-gold/50 bg-accent/60">
-            <img src={logo.url} alt="Logo Florata" className="h-8 w-8 object-contain" />
+          <span className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-gold/50">
+            <img src={logo.url} alt="Logo Florata" className="h-full w-full object-cover" />
           </span>
           <span className="min-w-0">
             <span className="block truncate font-display text-2xl leading-none font-semibold text-primary">
