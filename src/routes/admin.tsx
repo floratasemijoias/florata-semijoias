@@ -145,6 +145,30 @@ function Painel() {
     },
   });
 
+  const categorias = useMemo(
+    () => Array.from(new Set((produtos ?? []).map((p) => p.categoria).filter(Boolean))).sort(),
+    [produtos],
+  );
+
+  const listaFiltrada = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    let itens = (produtos ?? []).filter((p) => {
+      const casaBusca =
+        !termo ||
+        p.nome.toLowerCase().includes(termo) ||
+        p.categoria.toLowerCase().includes(termo) ||
+        (p.descricao ?? "").toLowerCase().includes(termo);
+      const casaCategoria = categoria === "todas" || p.categoria === categoria;
+      return casaBusca && casaCategoria;
+    });
+    itens = [...itens];
+    if (ordem === "preco-asc") itens.sort((a, b) => Number(a.preco) - Number(b.preco));
+    else if (ordem === "preco-desc") itens.sort((a, b) => Number(b.preco) - Number(a.preco));
+    else if (ordem === "az") itens.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    else if (ordem === "za") itens.sort((a, b) => b.nome.localeCompare(a.nome, "pt-BR"));
+    return itens;
+  }, [produtos, busca, categoria, ordem]);
+
   function invalidar() {
     queryClient.invalidateQueries({ queryKey: ["produtos-admin"] });
     queryClient.invalidateQueries({ queryKey: ["produtos"] });
