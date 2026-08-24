@@ -195,6 +195,54 @@ function Painel() {
       return;
     }
     toast.success("Produto removido");
+    setSelecionados([]);
+    invalidar();
+  }
+
+  const idsVisiveis = listaFiltrada.map((p) => p.id);
+  const selecionadosVisiveis = selecionados.filter((id) => idsVisiveis.includes(id));
+  const todosSelecionados =
+    idsVisiveis.length > 0 && selecionadosVisiveis.length === idsVisiveis.length;
+
+  function alternarSelecao(id: string) {
+    setSelecionados((atual) =>
+      atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id],
+    );
+  }
+
+  function editarSelecionado() {
+    const p = (produtos ?? []).find((x) => x.id === selecionadosVisiveis[0]);
+    if (!p) return;
+    setForm({
+      id: p.id,
+      nome: p.nome,
+      categoria: p.categoria,
+      tamanho: p.tamanho ?? "",
+      preco: String(p.preco),
+      descricao: p.descricao ?? "",
+      disponivel: p.disponivel,
+      quantidade: p.quantidade != null ? String(p.quantidade) : "",
+      imagem_url: p.imagem_url,
+    });
+  }
+
+  async function removerSelecionados() {
+    if (selecionadosVisiveis.length === 0) return;
+    if (
+      !confirm(
+        selecionadosVisiveis.length === 1
+          ? "Remover o produto selecionado?"
+          : `Remover ${selecionadosVisiveis.length} produtos selecionados?`,
+      )
+    )
+      return;
+    const { error } = await supabase.from("produtos").delete().in("id", selecionadosVisiveis);
+    if (error) {
+      toast.error("Não foi possível remover");
+      return;
+    }
+    toast.success("Produtos removidos");
+    setSelecionados([]);
     invalidar();
   }
 
