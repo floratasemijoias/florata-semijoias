@@ -58,9 +58,21 @@ function Catalogo() {
     [lista],
   );
 
+  const embaralhados = useMemo(() => {
+    const arr = [...lista];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(pseudoAleatorio(semente + i) * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [lista, semente]);
+
   const filtrados = useMemo(
-    () => (categoria === "Todas" ? lista : lista.filter((p) => p.categoria === categoria)),
-    [lista, categoria],
+    () =>
+      categoria === "Todas"
+        ? embaralhados
+        : embaralhados.filter((p) => p.categoria === categoria),
+    [embaralhados, categoria],
   );
 
   return (
