@@ -132,6 +132,7 @@ function Painel() {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todas");
   const [ordem, setOrdem] = useState("recentes");
+  const [selecionados, setSelecionados] = useState<string[]>([]);
 
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos-admin"],
