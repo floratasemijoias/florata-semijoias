@@ -322,7 +322,7 @@ function Painel() {
             <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
               <Checkbox
                 checked={todosSelecionados}
-                onCheckedChange={(v) => setSelecionados(v ? idsVisiveis : [])}
+                onCheckedChange={(v: boolean | "indeterminate") => setSelecionados(v === true ? idsVisiveis : [])}
                 aria-label="Selecionar todos"
               />
               Selecionar todos
