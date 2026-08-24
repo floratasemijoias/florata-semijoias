@@ -447,9 +447,200 @@ function Painel() {
           invalidar();
         }}
       />
+
+      <FormularioLote
+        ids={lote}
+        onFechar={() => setLote(null)}
+        onSalvo={() => {
+          setLote(null);
+          setSelecionados([]);
+          invalidar();
+        }}
+      />
     </div>
   );
 }
+
+type CampoLote = "categoria" | "tamanho" | "preco" | "descricao" | "quantidade" | "disponivel";
+
+function FormularioLote({
+  ids,
+  onFechar,
+  onSalvo,
+}: {
+  ids: string[] | null;
+  onFechar: () => void;
+  onSalvo: () => void;
+}) {
+  const [aplicar, setAplicar] = useState<Record<CampoLote, boolean>>({
+    categoria: false,
+    tamanho: false,
+    preco: false,
+    descricao: false,
+    quantidade: false,
+    disponivel: false,
+  });
+  const [dados, setDados] = useState({
+    categoria: "",
+    tamanho: "",
+    preco: "",
+    descricao: "",
+    quantidade: "",
+    disponivel: true,
+  });
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (ids) {
+      setAplicar({
+        categoria: false,
+        tamanho: false,
+        preco: false,
+        descricao: false,
+        quantidade: false,
+        disponivel: false,
+      });
+      setDados({
+        categoria: "",
+        tamanho: "",
+        preco: "",
+        descricao: "",
+        quantidade: "",
+        disponivel: true,
+      });
+    }
+  }, [ids]);
+
+  async function salvar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!ids) return;
+    const payload: Record<string, unknown> = {};
+    if (aplicar.categoria) {
+      if (!dados.categoria.trim()) {
+        toast.error("Informe a categoria");
+        return;
+      }
+      payload.categoria = dados.categoria.trim();
+    }
+    if (aplicar.tamanho) payload.tamanho = dados.tamanho.trim() || null;
+    if (aplicar.preco) payload.preco = Number(dados.preco.replace(",", ".")) || 0;
+    if (aplicar.descricao) payload.descricao = dados.descricao.trim() || null;
+    if (aplicar.quantidade)
+      payload.quantidade = dados.quantidade ? Number(dados.quantidade) : null;
+    if (aplicar.disponivel) payload.disponivel = dados.disponivel;
+
+    if (Object.keys(payload).length === 0) {
+      toast.error("Marque ao menos um campo para aplicar");
+      return;
+    }
+
+    setSalvando(true);
+    const { error } = await supabase.from("produtos").update(payload).in("id", ids);
+    setSalvando(false);
+    if (error) {
+      toast.error("Não foi possível salvar as alterações");
+      return;
+    }
+    toast.success(`${ids.length} produtos atualizados`);
+    onSalvo();
+  }
+
+  function Marcar({ campo, children }: { campo: CampoLote; children: React.ReactNode }) {
+    return (
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground">
+        <Checkbox
+          checked={aplicar[campo]}
+          onCheckedChange={(v: boolean | "indeterminate") =>
+            setAplicar((a) => ({ ...a, [campo]: v === true }))
+          }
+          aria-label={`Aplicar ${campo}`}
+        />
+        {children}
+      </label>
+    );
+  }
+
+  return (
+    <Dialog open={!!ids} onOpenChange={(v) => !v && onFechar()}>
+      <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display text-xl font-semibold text-primary">
+            Editar {ids?.length ?? 0} produtos
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground">
+          Marque os campos que deseja alterar. Os campos não marcados permanecem como estão em cada
+          produto. Nome e foto continuam individuais.
+        </p>
+
+        <form onSubmit={salvar} className="space-y-4">
+          <div className="space-y-1.5">
+            <Marcar campo="categoria">Categoria</Marcar>
+            <Input
+              value={dados.categoria}
+              maxLength={60}
+              disabled={!aplicar.categoria}
+              onChange={(e) => setDados({ ...dados, categoria: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Marcar campo="tamanho">Tamanho</Marcar>
+            <Input
+              value={dados.tamanho}
+              maxLength={30}
+              disabled={!aplicar.tamanho}
+              placeholder="P, M, G ou dimensão"
+              onChange={(e) => setDados({ ...dados, tamanho: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Marcar campo="preco">Preço (R$)</Marcar>
+              <Input
+                inputMode="decimal"
+                value={dados.preco}
+                disabled={!aplicar.preco}
+                onChange={(e) => setDados({ ...dados, preco: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Marcar campo="quantidade">Quantidade</Marcar>
+              <Input
+                inputMode="numeric"
+                value={dados.quantidade}
+                disabled={!aplicar.quantidade}
+                placeholder="Vazio = sem controle"
+                onChange={(e) => setDados({ ...dados, quantidade: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Marcar campo="descricao">Descrição</Marcar>
+            <Textarea
+              value={dados.descricao}
+              maxLength={600}
+              disabled={!aplicar.descricao}
+              onChange={(e) => setDados({ ...dados, descricao: e.target.value })}
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <Marcar campo="disponivel">Disponível para venda</Marcar>
+            <Switch
+              checked={dados.disponivel}
+              disabled={!aplicar.disponivel}
+              onCheckedChange={(v) => setDados({ ...dados, disponivel: v })}
+              aria-label="Disponibilidade em massa"
+            />
+          </div>
+          <Button type="submit" variant="gold" className="w-full" disabled={salvando}>
+            {salvando ? "Salvando..." : "Salvar alterações"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 function FormularioProduto({
   form,
