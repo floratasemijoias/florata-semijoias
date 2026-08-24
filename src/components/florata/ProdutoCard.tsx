@@ -42,7 +42,7 @@ export function ProdutoCard({
         <span className="text-[10px] tracking-brand text-muted-foreground uppercase">
           {produto.categoria}
         </span>
-        <h3 className="line-clamp-2 font-display text-lg leading-tight font-semibold text-primary">
+        <h3 className="line-clamp-2 font-times text-lg leading-tight font-semibold text-primary">
           {produto.nome}
         </h3>
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
