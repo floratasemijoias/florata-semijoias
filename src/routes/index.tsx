@@ -33,6 +33,22 @@ export const Route = createFileRoute("/")({
   component: Catalogo,
 });
 
+function pseudoAleatorio(n: number) {
+  const x = Math.sin(n) * 10000;
+  return x - Math.floor(x);
+}
+
+function obterSemente() {
+  if (typeof window === "undefined") return 1;
+  const chave = "florata_ordem_semente";
+  let s = window.sessionStorage.getItem(chave);
+  if (!s) {
+    s = String(Math.floor(Math.random() * 1_000_000) + 1);
+    window.sessionStorage.setItem(chave, s);
+  }
+  return Number(s);
+}
+
 function Catalogo() {
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos"],
