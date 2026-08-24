@@ -339,10 +339,11 @@ function Painel() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={selecionadosVisiveis.length !== 1}
+                disabled={selecionadosVisiveis.length === 0}
                 onClick={editarSelecionado}
               >
-                <Pencil className="h-4 w-4" /> Editar
+                <Pencil className="h-4 w-4" />{" "}
+                {selecionadosVisiveis.length > 1 ? "Editar em massa" : "Editar"}
               </Button>
               <Button
                 variant="outline"
