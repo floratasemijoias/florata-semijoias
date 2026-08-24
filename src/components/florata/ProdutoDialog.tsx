@@ -52,7 +52,7 @@ export function ProdutoDialog({
                   {produto.categoria}
                   {produto.tamanho ? ` · ${produto.tamanho}` : ""}
                 </span>
-                <DialogTitle className="font-display text-2xl font-semibold text-primary">
+                <DialogTitle className="font-times text-2xl font-semibold text-primary">
                   {produto.nome}
                 </DialogTitle>
               </DialogHeader>

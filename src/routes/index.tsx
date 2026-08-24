@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/florata/Header";
 import { Banners } from "@/components/florata/Banners";
 import { Filtros } from "@/components/florata/Filtros";
@@ -33,6 +33,22 @@ export const Route = createFileRoute("/")({
   component: Catalogo,
 });
 
+function pseudoAleatorio(n: number) {
+  const x = Math.sin(n) * 10000;
+  return x - Math.floor(x);
+}
+
+function obterSemente() {
+  if (typeof window === "undefined") return 1;
+  const chave = "florata_ordem_semente";
+  let s = window.sessionStorage.getItem(chave);
+  if (!s) {
+    s = String(Math.floor(Math.random() * 1_000_000) + 1);
+    window.sessionStorage.setItem(chave, s);
+  }
+  return Number(s);
+}
+
 function Catalogo() {
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos"],
@@ -50,6 +66,11 @@ function Catalogo() {
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [selecionado, setSelecionado] = useState<Produto | null>(null);
   const [categoria, setCategoria] = useState("Todas");
+  const [semente, setSemente] = useState(1);
+
+  useEffect(() => {
+    setSemente(obterSemente());
+  }, []);
 
   const lista = produtos ?? [];
 
@@ -58,9 +79,23 @@ function Catalogo() {
     [lista],
   );
 
+  const embaralhados = useMemo(() => {
+    const arr = [...lista];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(pseudoAleatorio(semente + i) * (i + 1));
+      const tmp = arr[i]!;
+      arr[i] = arr[j]!;
+      arr[j] = tmp;
+    }
+    return arr;
+  }, [lista, semente]);
+
   const filtrados = useMemo(
-    () => (categoria === "Todas" ? lista : lista.filter((p) => p.categoria === categoria)),
-    [lista, categoria],
+    () =>
+      categoria === "Todas"
+        ? embaralhados
+        : embaralhados.filter((p) => p.categoria === categoria),
+    [embaralhados, categoria],
   );
 
   return (

@@ -41,6 +41,7 @@
   --color-gold-light: var(--gold-light);
   --color-gold-foreground: var(--gold-foreground);
   --font-display: "Cormorant Garamond", "Montserrat", Georgia, serif;
+  --font-times: "Times New Roman", Times, Georgia, serif;
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
 }
 
