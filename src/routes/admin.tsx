@@ -316,6 +316,40 @@ function Painel() {
           </select>
         </div>
 
+        {listaFiltrada.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-accent/20 px-3 py-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+              <Checkbox
+                checked={todosSelecionados}
+                onCheckedChange={(v) => setSelecionados(v ? idsVisiveis : [])}
+                aria-label="Selecionar todos"
+              />
+              Selecionar todos
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {selecionadosVisiveis.length} selecionado(s)
+            </span>
+            <div className="ml-auto flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selecionadosVisiveis.length !== 1}
+                onClick={editarSelecionado}
+              >
+                <Pencil className="h-4 w-4" /> Editar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selecionadosVisiveis.length === 0}
+                onClick={removerSelecionados}
+              >
+                <Trash2 className="h-4 w-4" /> Excluir
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Carregando...</p>
         ) : listaFiltrada.length === 0 ? (
@@ -328,6 +362,11 @@ function Painel() {
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
             {listaFiltrada.map((p) => (
               <li key={p.id} className="flex items-center gap-3 bg-card p-3">
+                <Checkbox
+                  checked={selecionados.includes(p.id)}
+                  onCheckedChange={() => alternarSelecao(p.id)}
+                  aria-label={`Selecionar ${p.nome}`}
+                />
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-accent/40">
                   {p.imagem_url && (
                     <img src={p.imagem_url} alt={p.nome} className="h-full w-full object-cover" />
