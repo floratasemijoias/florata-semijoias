@@ -134,6 +134,7 @@ function Painel() {
   const [categoria, setCategoria] = useState("todas");
   const [ordem, setOrdem] = useState("recentes");
   const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [lote, setLote] = useState<string[] | null>(null);
 
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos-admin"],
@@ -213,6 +214,10 @@ function Painel() {
   }
 
   function editarSelecionado() {
+    if (selecionadosVisiveis.length > 1) {
+      setLote(selecionadosVisiveis);
+      return;
+    }
     const p = (produtos ?? []).find((x) => x.id === selecionadosVisiveis[0]);
     if (!p) return;
     setForm({
