@@ -66,6 +66,11 @@ function Catalogo() {
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [selecionado, setSelecionado] = useState<Produto | null>(null);
   const [categoria, setCategoria] = useState("Todas");
+  const [semente, setSemente] = useState(1);
+
+  useEffect(() => {
+    setSemente(obterSemente());
+  }, []);
 
   const lista = produtos ?? [];
 
@@ -78,7 +83,9 @@ function Catalogo() {
     const arr = [...lista];
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(pseudoAleatorio(semente + i) * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const tmp = arr[i]!;
+      arr[i] = arr[j]!;
+      arr[j] = tmp;
     }
     return arr;
   }, [lista, semente]);
