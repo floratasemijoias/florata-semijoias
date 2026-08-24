@@ -6,6 +6,7 @@ import { Loader2, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -132,6 +133,7 @@ function Painel() {
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todas");
   const [ordem, setOrdem] = useState("recentes");
+  const [selecionados, setSelecionados] = useState<string[]>([]);
 
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos-admin"],
@@ -195,6 +197,54 @@ function Painel() {
       return;
     }
     toast.success("Produto removido");
+    setSelecionados([]);
+    invalidar();
+  }
+
+  const idsVisiveis = listaFiltrada.map((p) => p.id);
+  const selecionadosVisiveis = selecionados.filter((id) => idsVisiveis.includes(id));
+  const todosSelecionados =
+    idsVisiveis.length > 0 && selecionadosVisiveis.length === idsVisiveis.length;
+
+  function alternarSelecao(id: string) {
+    setSelecionados((atual) =>
+      atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id],
+    );
+  }
+
+  function editarSelecionado() {
+    const p = (produtos ?? []).find((x) => x.id === selecionadosVisiveis[0]);
+    if (!p) return;
+    setForm({
+      id: p.id,
+      nome: p.nome,
+      categoria: p.categoria,
+      tamanho: p.tamanho ?? "",
+      preco: String(p.preco),
+      descricao: p.descricao ?? "",
+      disponivel: p.disponivel,
+      quantidade: p.quantidade != null ? String(p.quantidade) : "",
+      imagem_url: p.imagem_url,
+    });
+  }
+
+  async function removerSelecionados() {
+    if (selecionadosVisiveis.length === 0) return;
+    if (
+      !confirm(
+        selecionadosVisiveis.length === 1
+          ? "Remover o produto selecionado?"
+          : `Remover ${selecionadosVisiveis.length} produtos selecionados?`,
+      )
+    )
+      return;
+    const { error } = await supabase.from("produtos").delete().in("id", selecionadosVisiveis);
+    if (error) {
+      toast.error("Não foi possível remover");
+      return;
+    }
+    toast.success("Produtos removidos");
+    setSelecionados([]);
     invalidar();
   }
 
@@ -267,6 +317,40 @@ function Painel() {
           </select>
         </div>
 
+        {listaFiltrada.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-accent/20 px-3 py-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+              <Checkbox
+                checked={todosSelecionados}
+                onCheckedChange={(v: boolean | "indeterminate") => setSelecionados(v === true ? idsVisiveis : [])}
+                aria-label="Selecionar todos"
+              />
+              Selecionar todos
+            </label>
+            <span className="text-xs text-muted-foreground">
+              {selecionadosVisiveis.length} selecionado(s)
+            </span>
+            <div className="ml-auto flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selecionadosVisiveis.length !== 1}
+                onClick={editarSelecionado}
+              >
+                <Pencil className="h-4 w-4" /> Editar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selecionadosVisiveis.length === 0}
+                onClick={removerSelecionados}
+              >
+                <Trash2 className="h-4 w-4" /> Excluir
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <p className="py-10 text-center text-sm text-muted-foreground">Carregando...</p>
         ) : listaFiltrada.length === 0 ? (
@@ -279,6 +363,11 @@ function Painel() {
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
             {listaFiltrada.map((p) => (
               <li key={p.id} className="flex items-center gap-3 bg-card p-3">
+                <Checkbox
+                  checked={selecionados.includes(p.id)}
+                  onCheckedChange={() => alternarSelecao(p.id)}
+                  aria-label={`Selecionar ${p.nome}`}
+                />
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-accent/40">
                   {p.imagem_url && (
                     <img src={p.imagem_url} alt={p.nome} className="h-full w-full object-cover" />
