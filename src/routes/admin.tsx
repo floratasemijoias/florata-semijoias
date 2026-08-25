@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminBanners } from "@/components/florata/AdminBanners";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesUpdate } from "@/integrations/supabase/types";
 import { formatarPreco, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/admin")({
@@ -514,7 +515,7 @@ function FormularioLote({
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
     if (!ids) return;
-    const payload: Record<string, unknown> = {};
+    const payload: TablesUpdate<"produtos"> = {};
     if (aplicar.categoria) {
       if (!dados.categoria.trim()) {
         toast.error("Informe a categoria");
