@@ -450,6 +450,7 @@ function Painel() {
       />
 
       <FormularioLote
+        produtos={produtos ?? []}
         ids={lote}
         onFechar={() => setLote(null)}
         onSalvo={() => {
@@ -462,185 +463,232 @@ function Painel() {
   );
 }
 
-type CampoLote = "categoria" | "tamanho" | "preco" | "descricao" | "quantidade" | "disponivel";
+type LinhaLote = {
+  id: string;
+  nome: string;
+  categoria: string;
+  tamanho: string;
+  preco: string;
+  quantidade: string;
+  descricao: string;
+  disponivel: boolean;
+};
+
+type CampoTexto = "nome" | "categoria" | "tamanho" | "preco" | "quantidade" | "descricao";
+
+const PADRAO_VAZIO = {
+  nome: "",
+  categoria: "",
+  tamanho: "",
+  preco: "",
+  quantidade: "",
+  descricao: "",
+};
 
 function FormularioLote({
+  produtos,
   ids,
   onFechar,
   onSalvo,
 }: {
+  produtos: Produto[];
   ids: string[] | null;
   onFechar: () => void;
   onSalvo: () => void;
 }) {
-  const [aplicar, setAplicar] = useState<Record<CampoLote, boolean>>({
-    categoria: false,
-    tamanho: false,
-    preco: false,
-    descricao: false,
-    quantidade: false,
-    disponivel: false,
-  });
-  const [dados, setDados] = useState({
-    categoria: "",
-    tamanho: "",
-    preco: "",
-    descricao: "",
-    quantidade: "",
-    disponivel: true,
-  });
+  const [linhas, setLinhas] = useState<LinhaLote[]>([]);
+  const [padrao, setPadrao] = useState({ ...PADRAO_VAZIO });
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    if (ids) {
-      setAplicar({
-        categoria: false,
-        tamanho: false,
-        preco: false,
-        descricao: false,
-        quantidade: false,
-        disponivel: false,
-      });
-      setDados({
-        categoria: "",
-        tamanho: "",
-        preco: "",
-        descricao: "",
-        quantidade: "",
-        disponivel: true,
-      });
-    }
+    if (!ids) return;
+    setPadrao({ ...PADRAO_VAZIO });
+    setLinhas(
+      ids
+        .map((id) => produtos.find((p) => p.id === id))
+        .filter((p): p is Produto => !!p)
+        .map((p) => ({
+          id: p.id,
+          nome: p.nome,
+          categoria: p.categoria,
+          tamanho: p.tamanho ?? "",
+          preco: String(p.preco),
+          quantidade: p.quantidade != null ? String(p.quantidade) : "",
+          descricao: p.descricao ?? "",
+          disponivel: p.disponivel,
+        })),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ids]);
+
+  function alterar(id: string, campo: keyof LinhaLote, valor: string | boolean) {
+    setLinhas((atual) => atual.map((l) => (l.id === id ? { ...l, [campo]: valor } : l)));
+  }
+
+  function aplicarPadrao(campo: CampoTexto, valor: string) {
+    setPadrao((p) => ({ ...p, [campo]: valor }));
+    setLinhas((atual) => atual.map((l) => ({ ...l, [campo]: valor })));
+  }
+
+  function aplicarDisponibilidade(valor: boolean) {
+    setLinhas((atual) => atual.map((l) => ({ ...l, disponivel: valor })));
+  }
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!ids) return;
-    const payload: TablesUpdate<"produtos"> = {};
-    if (aplicar.categoria) {
-      if (!dados.categoria.trim()) {
-        toast.error("Informe a categoria");
-        return;
-      }
-      payload.categoria = dados.categoria.trim();
-    }
-    if (aplicar.tamanho) payload.tamanho = dados.tamanho.trim() || null;
-    if (aplicar.preco) payload.preco = Number(dados.preco.replace(",", ".")) || 0;
-    if (aplicar.descricao) payload.descricao = dados.descricao.trim() || null;
-    if (aplicar.quantidade)
-      payload.quantidade = dados.quantidade ? Number(dados.quantidade) : null;
-    if (aplicar.disponivel) payload.disponivel = dados.disponivel;
-
-    if (Object.keys(payload).length === 0) {
-      toast.error("Marque ao menos um campo para aplicar");
+    if (linhas.some((l) => !l.nome.trim() || !l.categoria.trim())) {
+      toast.error("Nome e categoria são obrigatórios em todos os produtos");
       return;
     }
-
     setSalvando(true);
-    const { error } = await supabase.from("produtos").update(payload).in("id", ids);
+    const resultados = await Promise.all(
+      linhas.map((l) => {
+        const payload: TablesUpdate<"produtos"> = {
+          nome: l.nome.trim(),
+          categoria: l.categoria.trim(),
+          tamanho: l.tamanho.trim() || null,
+          preco: Number(l.preco.replace(",", ".")) || 0,
+          quantidade: l.quantidade ? Number(l.quantidade) : null,
+          descricao: l.descricao.trim() || null,
+          disponivel: l.disponivel,
+        };
+        return supabase.from("produtos").update(payload).eq("id", l.id);
+      }),
+    );
     setSalvando(false);
-    if (error) {
-      toast.error("Não foi possível salvar as alterações");
+    if (resultados.some((r) => r.error)) {
+      toast.error("Não foi possível salvar todas as alterações");
       return;
     }
-    toast.success(`${ids.length} produtos atualizados`);
+    toast.success(`${linhas.length} produtos atualizados`);
     onSalvo();
   }
 
-  function Marcar({ campo, children }: { campo: CampoLote; children: React.ReactNode }) {
-    return (
-      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground">
-        <Checkbox
-          checked={aplicar[campo]}
-          onCheckedChange={(v: boolean | "indeterminate") =>
-            setAplicar((a) => ({ ...a, [campo]: v === true }))
-          }
-          aria-label={`Aplicar ${campo}`}
-        />
-        {children}
-      </label>
-    );
-  }
+  const colunas = "grid grid-cols-[2fr_1.4fr_1fr_1fr_1fr_2fr_auto] gap-2 min-w-[900px] items-start";
 
   return (
     <Dialog open={!!ids} onOpenChange={(v) => !v && onFechar()}>
-      <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-[95vw]">
         <DialogHeader>
           <DialogTitle className="font-display text-xl font-semibold text-primary">
-            Editar {ids?.length ?? 0} produtos
+            Editar {linhas.length} produtos
           </DialogTitle>
         </DialogHeader>
         <p className="text-xs text-muted-foreground">
-          Marque os campos que deseja alterar. Os campos não marcados permanecem como estão em cada
-          produto. Nome e foto continuam individuais.
+          A primeira linha é o campo padrão: o que for digitado nela é aplicado a todos os produtos
+          abaixo. Depois, edite cada produto individualmente, campo a campo.
         </p>
 
-        <form onSubmit={salvar} className="space-y-4">
-          <div className="space-y-1.5">
-            <Marcar campo="categoria">Categoria</Marcar>
-            <Input
-              value={dados.categoria}
-              maxLength={60}
-              disabled={!aplicar.categoria}
-              onChange={(e) => setDados({ ...dados, categoria: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Marcar campo="tamanho">Tamanho</Marcar>
-            <Input
-              value={dados.tamanho}
-              maxLength={30}
-              disabled={!aplicar.tamanho}
-              placeholder="P, M, G ou dimensão"
-              onChange={(e) => setDados({ ...dados, tamanho: e.target.value })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Marcar campo="preco">Preço (R$)</Marcar>
-              <Input
-                inputMode="decimal"
-                value={dados.preco}
-                disabled={!aplicar.preco}
-                onChange={(e) => setDados({ ...dados, preco: e.target.value })}
-              />
+        <form onSubmit={salvar} className="space-y-3">
+          <div className="overflow-x-auto pb-2">
+            <div className="space-y-2">
+              <div className={`${colunas} text-xs font-medium tracking-wide text-muted-foreground uppercase`}>
+                <span>Nome</span>
+                <span>Categoria</span>
+                <span>Tamanho</span>
+                <span>Preço (R$)</span>
+                <span>Quantidade</span>
+                <span>Descrição</span>
+                <span>Disponível</span>
+              </div>
+
+              <div className={`${colunas} rounded-md border border-gold bg-accent/40 p-2`}>
+                <Input
+                  value={padrao.nome}
+                  placeholder="Padrão p/ todos"
+                  onChange={(e) => aplicarPadrao("nome", e.target.value)}
+                />
+                <Input
+                  value={padrao.categoria}
+                  placeholder="Padrão"
+                  onChange={(e) => aplicarPadrao("categoria", e.target.value)}
+                />
+                <Input
+                  value={padrao.tamanho}
+                  placeholder="Padrão"
+                  onChange={(e) => aplicarPadrao("tamanho", e.target.value)}
+                />
+                <Input
+                  inputMode="decimal"
+                  value={padrao.preco}
+                  placeholder="Padrão"
+                  onChange={(e) => aplicarPadrao("preco", e.target.value)}
+                />
+                <Input
+                  inputMode="numeric"
+                  value={padrao.quantidade}
+                  placeholder="Padrão"
+                  onChange={(e) => aplicarPadrao("quantidade", e.target.value)}
+                />
+                <Textarea
+                  rows={2}
+                  value={padrao.descricao}
+                  placeholder="Padrão p/ todos"
+                  onChange={(e) => aplicarPadrao("descricao", e.target.value)}
+                />
+                <div className="flex h-9 items-center justify-center">
+                  <Switch
+                    checked={linhas.every((l) => l.disponivel)}
+                    onCheckedChange={aplicarDisponibilidade}
+                    aria-label="Disponibilidade padrão"
+                  />
+                </div>
+              </div>
+
+              {linhas.map((l) => (
+                <div key={l.id} className={`${colunas} rounded-md border border-border p-2`}>
+                  <Input
+                    value={l.nome}
+                    maxLength={120}
+                    onChange={(e) => alterar(l.id, "nome", e.target.value)}
+                  />
+                  <Input
+                    value={l.categoria}
+                    maxLength={60}
+                    onChange={(e) => alterar(l.id, "categoria", e.target.value)}
+                  />
+                  <Input
+                    value={l.tamanho}
+                    maxLength={30}
+                    onChange={(e) => alterar(l.id, "tamanho", e.target.value)}
+                  />
+                  <Input
+                    inputMode="decimal"
+                    value={l.preco}
+                    onChange={(e) => alterar(l.id, "preco", e.target.value)}
+                  />
+                  <Input
+                    inputMode="numeric"
+                    value={l.quantidade}
+                    onChange={(e) => alterar(l.id, "quantidade", e.target.value)}
+                  />
+                  <Textarea
+                    rows={2}
+                    value={l.descricao}
+                    maxLength={600}
+                    onChange={(e) => alterar(l.id, "descricao", e.target.value)}
+                  />
+                  <div className="flex h-9 items-center justify-center">
+                    <Switch
+                      checked={l.disponivel}
+                      onCheckedChange={(v) => alterar(l.id, "disponivel", v)}
+                      aria-label={`Disponibilidade de ${l.nome}`}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="space-y-1.5">
-              <Marcar campo="quantidade">Quantidade</Marcar>
-              <Input
-                inputMode="numeric"
-                value={dados.quantidade}
-                disabled={!aplicar.quantidade}
-                placeholder="Vazio = sem controle"
-                onChange={(e) => setDados({ ...dados, quantidade: e.target.value })}
-              />
-            </div>
           </div>
-          <div className="space-y-1.5">
-            <Marcar campo="descricao">Descrição</Marcar>
-            <Textarea
-              value={dados.descricao}
-              maxLength={600}
-              disabled={!aplicar.descricao}
-              onChange={(e) => setDados({ ...dados, descricao: e.target.value })}
-            />
-          </div>
-          <div className="flex items-center justify-between rounded-md border border-border p-3">
-            <Marcar campo="disponivel">Disponível para venda</Marcar>
-            <Switch
-              checked={dados.disponivel}
-              disabled={!aplicar.disponivel}
-              onCheckedChange={(v) => setDados({ ...dados, disponivel: v })}
-              aria-label="Disponibilidade em massa"
-            />
-          </div>
+
           <Button type="submit" variant="gold" className="w-full" disabled={salvando}>
-            {salvando ? "Salvando..." : "Salvar alterações"}
+            {salvando ? "Salvando..." : `Salvar ${linhas.length} produtos`}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 
 function FormularioProduto({
