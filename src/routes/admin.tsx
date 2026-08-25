@@ -450,6 +450,7 @@ function Painel() {
       />
 
       <FormularioLote
+        produtos={produtos ?? []}
         ids={lote}
         onFechar={() => setLote(null)}
         onSalvo={() => {
