@@ -610,6 +610,54 @@ function FormularioLote({
           abaixo. Depois, edite cada produto individualmente, campo a campo.
         </p>
 
+        <div className="flex flex-wrap items-end gap-2 rounded-md border border-border p-3">
+          <div className="space-y-1">
+            <Label htmlFor="lr-buscar" className="text-xs">
+              Localizar
+            </Label>
+            <Input
+              id="lr-buscar"
+              value={localizar}
+              className="h-9 w-40"
+              onChange={(e) => setLocalizar(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="lr-sub" className="text-xs">
+              Substituir por
+            </Label>
+            <Input
+              id="lr-sub"
+              value={substituir}
+              className="h-9 w-40"
+              onChange={(e) => setSubstituir(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="lr-campo" className="text-xs">
+              Campo
+            </Label>
+            <select
+              id="lr-campo"
+              value={campoAlvo}
+              onChange={(e) => setCampoAlvo(e.target.value as "todos" | CampoTexto)}
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="todos">Todos os campos</option>
+              <option value="nome">Nome</option>
+              <option value="categoria">Categoria</option>
+              <option value="tamanho">Tamanho</option>
+              <option value="preco">Preço</option>
+              <option value="quantidade">Quantidade</option>
+              <option value="descricao">Descrição</option>
+            </select>
+          </div>
+          <Button type="button" variant="outline" className="h-9" onClick={aplicarSubstituicao}>
+            Substituir
+          </Button>
+        </div>
+
+
         <form onSubmit={salvar} className="space-y-3">
           <div className="overflow-x-auto pb-2">
             <div className="space-y-2">
