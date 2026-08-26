@@ -124,7 +124,8 @@ const vazio: FormProduto = {
   preco: "",
   descricao: "",
   disponivel: true,
-  quantidade: "",
+  quantidade: "1",
+
   imagem_url: null,
 };
 
@@ -499,6 +500,36 @@ function FormularioLote({
   const [linhas, setLinhas] = useState<LinhaLote[]>([]);
   const [padrao, setPadrao] = useState({ ...PADRAO_VAZIO });
   const [salvando, setSalvando] = useState(false);
+  const [localizar, setLocalizar] = useState("");
+  const [substituir, setSubstituir] = useState("");
+  const [campoAlvo, setCampoAlvo] = useState<"todos" | CampoTexto>("todos");
+
+  function aplicarSubstituicao() {
+    if (!localizar) {
+      toast.error("Informe o texto a localizar");
+      return;
+    }
+    const campos: CampoTexto[] =
+      campoAlvo === "todos"
+        ? ["nome", "categoria", "tamanho", "preco", "quantidade", "descricao"]
+        : [campoAlvo];
+    let trocas = 0;
+    setLinhas((atual) =>
+      atual.map((l) => {
+        const nova = { ...l };
+        campos.forEach((c) => {
+          const valor = nova[c];
+          if (valor.includes(localizar)) {
+            trocas += 1;
+            nova[c] = valor.split(localizar).join(substituir);
+          }
+        });
+        return nova;
+      }),
+    );
+    toast.success(trocas ? `${trocas} campo(s) alterado(s)` : "Nenhuma ocorrência encontrada");
+  }
+
 
   useEffect(() => {
     if (!ids) return;
