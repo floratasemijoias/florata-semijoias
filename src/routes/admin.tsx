@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminBanners } from "@/components/florata/AdminBanners";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { formatarPreco, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/admin")({
@@ -837,9 +837,10 @@ function FormularioProduto({
         if (resposta.error) throw resposta.error;
         toast.success("Produto atualizado");
       } else {
-        const linhas = tamanhos.length
+        const linhas: TablesInsert<"produtos">[] = tamanhos.length
           ? tamanhos.map((t) => ({ ...base, tamanho: t }))
           : [{ ...base, tamanho: null }];
+
         const resposta = await supabase.from("produtos").insert(linhas);
         if (resposta.error) throw resposta.error;
         toast.success(
