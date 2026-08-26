@@ -938,7 +938,15 @@ function FormularioProduto({
               id="p-foto"
               type="file"
               accept="image/*"
-              onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setArquivo(f);
+                if (f) {
+                  const nomeArquivo = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+                  if (nomeArquivo) setDados((d) => ({ ...d, nome: nomeArquivo }));
+                }
+              }}
+
             />
             {dados.imagem_url && !arquivo && (
               <img
