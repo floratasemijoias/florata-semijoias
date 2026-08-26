@@ -814,10 +814,9 @@ function FormularioProduto({
         imagem_url = assinada.signedUrl;
       }
 
-      const payload = {
+      const base = {
         nome: dados.nome.trim(),
         categoria: dados.categoria.trim(),
-        tamanho: dados.tamanho.trim() || null,
         preco: Number(dados.preco.replace(",", ".")) || 0,
         descricao: dados.descricao.trim() || null,
         disponivel: dados.disponivel,
@@ -825,12 +824,29 @@ function FormularioProduto({
         imagem_url,
       };
 
-      const resposta = dados.id
-        ? await supabase.from("produtos").update(payload).eq("id", dados.id)
-        : await supabase.from("produtos").insert(payload);
+      const tamanhos = dados.tamanho
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
 
-      if (resposta.error) throw resposta.error;
-      toast.success(dados.id ? "Produto atualizado" : "Produto cadastrado");
+      if (dados.id) {
+        const resposta = await supabase
+          .from("produtos")
+          .update({ ...base, tamanho: tamanhos.join(", ") || null })
+          .eq("id", dados.id);
+        if (resposta.error) throw resposta.error;
+        toast.success("Produto atualizado");
+      } else {
+        const linhas = tamanhos.length
+          ? tamanhos.map((t) => ({ ...base, tamanho: t }))
+          : [{ ...base, tamanho: null }];
+        const resposta = await supabase.from("produtos").insert(linhas);
+        if (resposta.error) throw resposta.error;
+        toast.success(
+          linhas.length > 1 ? `${linhas.length} produtos cadastrados` : "Produto cadastrado",
+        );
+      }
+
       onSalvo();
     } catch {
       toast.error("Não foi possível salvar o produto");
