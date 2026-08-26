@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminBanners } from "@/components/florata/AdminBanners";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { formatarPreco, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/admin")({
@@ -124,7 +124,8 @@ const vazio: FormProduto = {
   preco: "",
   descricao: "",
   disponivel: true,
-  quantidade: "",
+  quantidade: "1",
+
   imagem_url: null,
 };
 
@@ -499,6 +500,36 @@ function FormularioLote({
   const [linhas, setLinhas] = useState<LinhaLote[]>([]);
   const [padrao, setPadrao] = useState({ ...PADRAO_VAZIO });
   const [salvando, setSalvando] = useState(false);
+  const [localizar, setLocalizar] = useState("");
+  const [substituir, setSubstituir] = useState("");
+  const [campoAlvo, setCampoAlvo] = useState<"todos" | CampoTexto>("todos");
+
+  function aplicarSubstituicao() {
+    if (!localizar) {
+      toast.error("Informe o texto a localizar");
+      return;
+    }
+    const campos: CampoTexto[] =
+      campoAlvo === "todos"
+        ? ["nome", "categoria", "tamanho", "preco", "quantidade", "descricao"]
+        : [campoAlvo];
+    let trocas = 0;
+    setLinhas((atual) =>
+      atual.map((l) => {
+        const nova = { ...l };
+        campos.forEach((c) => {
+          const valor = nova[c];
+          if (valor.includes(localizar)) {
+            trocas += 1;
+            nova[c] = valor.split(localizar).join(substituir);
+          }
+        });
+        return nova;
+      }),
+    );
+    toast.success(trocas ? `${trocas} campo(s) alterado(s)` : "Nenhuma ocorrência encontrada");
+  }
+
 
   useEffect(() => {
     if (!ids) return;
@@ -578,6 +609,54 @@ function FormularioLote({
           A primeira linha é o campo padrão: o que for digitado nela é aplicado a todos os produtos
           abaixo. Depois, edite cada produto individualmente, campo a campo.
         </p>
+
+        <div className="flex flex-wrap items-end gap-2 rounded-md border border-border p-3">
+          <div className="space-y-1">
+            <Label htmlFor="lr-buscar" className="text-xs">
+              Localizar
+            </Label>
+            <Input
+              id="lr-buscar"
+              value={localizar}
+              className="h-9 w-40"
+              onChange={(e) => setLocalizar(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="lr-sub" className="text-xs">
+              Substituir por
+            </Label>
+            <Input
+              id="lr-sub"
+              value={substituir}
+              className="h-9 w-40"
+              onChange={(e) => setSubstituir(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="lr-campo" className="text-xs">
+              Campo
+            </Label>
+            <select
+              id="lr-campo"
+              value={campoAlvo}
+              onChange={(e) => setCampoAlvo(e.target.value as "todos" | CampoTexto)}
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="todos">Todos os campos</option>
+              <option value="nome">Nome</option>
+              <option value="categoria">Categoria</option>
+              <option value="tamanho">Tamanho</option>
+              <option value="preco">Preço</option>
+              <option value="quantidade">Quantidade</option>
+              <option value="descricao">Descrição</option>
+            </select>
+          </div>
+          <Button type="button" variant="outline" className="h-9" onClick={aplicarSubstituicao}>
+            Substituir
+          </Button>
+        </div>
+
 
         <form onSubmit={salvar} className="space-y-3">
           <div className="overflow-x-auto pb-2">
@@ -735,10 +814,9 @@ function FormularioProduto({
         imagem_url = assinada.signedUrl;
       }
 
-      const payload = {
+      const base = {
         nome: dados.nome.trim(),
         categoria: dados.categoria.trim(),
-        tamanho: dados.tamanho.trim() || null,
         preco: Number(dados.preco.replace(",", ".")) || 0,
         descricao: dados.descricao.trim() || null,
         disponivel: dados.disponivel,
@@ -746,12 +824,30 @@ function FormularioProduto({
         imagem_url,
       };
 
-      const resposta = dados.id
-        ? await supabase.from("produtos").update(payload).eq("id", dados.id)
-        : await supabase.from("produtos").insert(payload);
+      const tamanhos = dados.tamanho
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
 
-      if (resposta.error) throw resposta.error;
-      toast.success(dados.id ? "Produto atualizado" : "Produto cadastrado");
+      if (dados.id) {
+        const resposta = await supabase
+          .from("produtos")
+          .update({ ...base, tamanho: tamanhos.join(", ") || null })
+          .eq("id", dados.id);
+        if (resposta.error) throw resposta.error;
+        toast.success("Produto atualizado");
+      } else {
+        const linhas: TablesInsert<"produtos">[] = tamanhos.length
+          ? tamanhos.map((t) => ({ ...base, tamanho: t }))
+          : [{ ...base, tamanho: null }];
+
+        const resposta = await supabase.from("produtos").insert(linhas);
+        if (resposta.error) throw resposta.error;
+        toast.success(
+          linhas.length > 1 ? `${linhas.length} produtos cadastrados` : "Produto cadastrado",
+        );
+      }
+
       onSalvo();
     } catch {
       toast.error("Não foi possível salvar o produto");
@@ -790,15 +886,21 @@ function FormularioProduto({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="p-tam">Tamanho</Label>
+              <Label htmlFor="p-tam">{dados.id ? "Tamanho" : "Tamanho(s)"}</Label>
               <Input
                 id="p-tam"
                 value={dados.tamanho}
-                maxLength={30}
-                placeholder="P, M, G ou dimensão"
+                maxLength={120}
+                placeholder={dados.id ? "P, M, G ou dimensão" : "Ex.: 16, 17, 18"}
                 onChange={(e) => setDados({ ...dados, tamanho: e.target.value })}
               />
+              {!dados.id && (
+                <p className="text-[11px] text-muted-foreground">
+                  Separe por vírgula para criar o mesmo produto em vários tamanhos.
+                </p>
+              )}
             </div>
+
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -836,7 +938,15 @@ function FormularioProduto({
               id="p-foto"
               type="file"
               accept="image/*"
-              onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                setArquivo(f);
+                if (f) {
+                  const nomeArquivo = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+                  if (nomeArquivo) setDados((d) => ({ ...d, nome: nomeArquivo }));
+                }
+              }}
+
             />
             {dados.imagem_url && !arquivo && (
               <img

@@ -50,16 +50,19 @@ export function ProdutoDialog({
               <DialogHeader className="space-y-1 text-left">
                 <span className="text-[10px] tracking-brand text-muted-foreground uppercase">
                   {produto.categoria}
-                  {produto.tamanho ? ` · ${produto.tamanho}` : ""}
                 </span>
                 <DialogTitle className="font-times text-2xl font-semibold text-primary">
                   {produto.nome}
                 </DialogTitle>
+                {produto.tamanho && (
+                  <p className="text-sm text-muted-foreground">Tamanho: {produto.tamanho}</p>
+                )}
               </DialogHeader>
 
               <p className="text-xl font-medium text-primary">
                 {formatarPreco(Number(produto.preco))}
               </p>
+
 
               {produto.descricao && (
                 <p className="text-sm leading-relaxed text-muted-foreground">{produto.descricao}</p>

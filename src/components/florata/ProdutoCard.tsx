@@ -49,12 +49,8 @@ export function ProdutoCard({
           <span className="text-base font-medium text-primary">
             {formatarPreco(Number(produto.preco))}
           </span>
-          {produto.tamanho && (
-            <span className="rounded-full border border-gold/50 bg-accent/50 px-2 py-0.5 text-[11px] text-primary">
-              {produto.tamanho}
-            </span>
-          )}
         </div>
+
       </div>
     </button>
   );
