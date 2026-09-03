@@ -880,20 +880,19 @@ function FormularioProduto({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="p-tam">{dados.id ? "Tamanho" : "Tamanho(s)"}</Label>
+              <Label htmlFor="p-tam">Tamanho(s)</Label>
               <Input
                 id="p-tam"
                 value={dados.tamanho}
                 maxLength={120}
-                placeholder={dados.id ? "P, M, G ou dimensão" : "Ex.: 16, 17, 18"}
+                placeholder="Ex.: 16, 17, 18"
                 onChange={(e) => setDados({ ...dados, tamanho: e.target.value })}
               />
-              {!dados.id && (
-                <p className="text-[11px] text-muted-foreground">
-                  Separe por vírgula para criar o mesmo produto em vários tamanhos.
-                </p>
-              )}
+              <p className="text-[11px] text-muted-foreground">
+                Separe por vírgula: o cliente escolhe o tamanho na página do produto.
+              </p>
             </div>
+
 
           </div>
           <div className="grid grid-cols-2 gap-3">
