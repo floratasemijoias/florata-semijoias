@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSacola } from "@/lib/carrinho";
 import { formatarPreco, listarTamanhos, type Produto } from "@/lib/florata";
+import { trackAddToCart, trackViewItem } from "@/lib/gtm";
 
 export function ProdutoDialog({
   produto,
@@ -22,6 +23,16 @@ export function ProdutoDialog({
     setQtd(1);
     setTamanho(tamanhos.length === 1 ? tamanhos[0]! : null);
   }, [produto?.id, tamanhos]);
+
+  useEffect(() => {
+    if (!produto) return;
+    trackViewItem({
+      item_id: produto.id,
+      item_name: produto.nome,
+      price: Number(produto.preco),
+      item_category: produto.categoria,
+    });
+  }, [produto]);
 
   const esgotado = produto ? !produto.disponivel : false;
 
