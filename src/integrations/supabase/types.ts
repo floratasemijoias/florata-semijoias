@@ -86,6 +86,24 @@ export type Database = {
         }
         Relationships: []
       }
+      settings: {
+        Row: {
+          atualizado_em: string
+          gtm_container_id: string | null
+          id: boolean
+        }
+        Insert: {
+          atualizado_em?: string
+          gtm_container_id?: string | null
+          id?: boolean
+        }
+        Update: {
+          atualizado_em?: string
+          gtm_container_id?: string | null
+          id?: boolean
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
