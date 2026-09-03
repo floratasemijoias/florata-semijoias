@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Flower2, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSacola } from "@/lib/carrinho";
-import { formatarPreco, type Produto } from "@/lib/florata";
+import { formatarPreco, listarTamanhos, type Produto } from "@/lib/florata";
 
 export function ProdutoDialog({
   produto,
@@ -15,10 +15,13 @@ export function ProdutoDialog({
 }) {
   const { adicionar } = useSacola();
   const [qtd, setQtd] = useState(1);
+  const tamanhos = useMemo(() => listarTamanhos(produto?.tamanho), [produto?.tamanho]);
+  const [tamanho, setTamanho] = useState<string | null>(null);
 
   useEffect(() => {
     setQtd(1);
-  }, [produto?.id]);
+    setTamanho(tamanhos.length === 1 ? tamanhos[0]! : null);
+  }, [produto?.id, tamanhos]);
 
   const esgotado = produto ? !produto.disponivel : false;
 
