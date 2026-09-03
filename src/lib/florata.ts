@@ -14,6 +14,13 @@ export type Produto = {
   criado_em: string;
 };
 
+export function listarTamanhos(tamanho: string | null | undefined) {
+  return (tamanho ?? "")
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
 export function formatarPreco(valor: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

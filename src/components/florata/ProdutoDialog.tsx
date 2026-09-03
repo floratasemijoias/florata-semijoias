@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Flower2, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSacola } from "@/lib/carrinho";
-import { formatarPreco, type Produto } from "@/lib/florata";
+import { formatarPreco, listarTamanhos, type Produto } from "@/lib/florata";
 
 export function ProdutoDialog({
   produto,
@@ -15,10 +15,13 @@ export function ProdutoDialog({
 }) {
   const { adicionar } = useSacola();
   const [qtd, setQtd] = useState(1);
+  const tamanhos = useMemo(() => listarTamanhos(produto?.tamanho), [produto?.tamanho]);
+  const [tamanho, setTamanho] = useState<string | null>(null);
 
   useEffect(() => {
     setQtd(1);
-  }, [produto?.id]);
+    setTamanho(tamanhos.length === 1 ? tamanhos[0]! : null);
+  }, [produto?.id, tamanhos]);
 
   const esgotado = produto ? !produto.disponivel : false;
 
@@ -54,19 +57,43 @@ export function ProdutoDialog({
                 <DialogTitle className="font-times text-2xl font-semibold text-primary">
                   {produto.nome}
                 </DialogTitle>
-                {produto.tamanho && (
-                  <p className="text-sm text-muted-foreground">Tamanho: {produto.tamanho}</p>
-                )}
               </DialogHeader>
 
               <p className="text-xl font-medium text-primary">
                 {formatarPreco(Number(produto.preco))}
               </p>
 
+              {tamanhos.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-primary">
+                    Tamanho{tamanhos.length > 1 ? ": escolha uma opção" : `: ${tamanhos[0]}`}
+                  </p>
+                  {tamanhos.length > 1 && (
+                    <div className="flex flex-wrap gap-2">
+                      {tamanhos.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setTamanho(t)}
+                          aria-pressed={tamanho === t}
+                          className={`min-w-11 cursor-pointer rounded-full border px-3 py-2 text-sm transition-colors ${
+                            tamanho === t
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border text-primary hover:bg-accent"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {produto.descricao && (
                 <p className="text-sm leading-relaxed text-muted-foreground">{produto.descricao}</p>
               )}
+
 
               {!esgotado ? (
                 <div className="flex items-center gap-3">
@@ -94,7 +121,11 @@ export function ProdutoDialog({
                     size="lg"
                     className="flex-1"
                     onClick={() => {
-                      adicionar(produto, qtd);
+                      if (tamanhos.length > 1 && !tamanho) {
+                        toast.error("Escolha um tamanho");
+                        return;
+                      }
+                      adicionar(produto, qtd, tamanho ?? tamanhos[0] ?? null);
                       toast.success("Adicionado à sacola");
                       onFechar();
                     }}
