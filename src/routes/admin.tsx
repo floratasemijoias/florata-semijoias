@@ -829,24 +829,18 @@ function FormularioProduto({
         .map((t) => t.trim())
         .filter(Boolean);
 
+      const linha = { ...base, tamanho: tamanhos.join(", ") || null };
+
       if (dados.id) {
-        const resposta = await supabase
-          .from("produtos")
-          .update({ ...base, tamanho: tamanhos.join(", ") || null })
-          .eq("id", dados.id);
+        const resposta = await supabase.from("produtos").update(linha).eq("id", dados.id);
         if (resposta.error) throw resposta.error;
         toast.success("Produto atualizado");
       } else {
-        const linhas: TablesInsert<"produtos">[] = tamanhos.length
-          ? tamanhos.map((t) => ({ ...base, tamanho: t }))
-          : [{ ...base, tamanho: null }];
-
-        const resposta = await supabase.from("produtos").insert(linhas);
+        const resposta = await supabase.from("produtos").insert([linha as TablesInsert<"produtos">]);
         if (resposta.error) throw resposta.error;
-        toast.success(
-          linhas.length > 1 ? `${linhas.length} produtos cadastrados` : "Produto cadastrado",
-        );
+        toast.success("Produto cadastrado");
       }
+
 
       onSalvo();
     } catch {
