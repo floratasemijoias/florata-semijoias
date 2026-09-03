@@ -14,7 +14,7 @@ type SacolaContexto = {
   itens: ItemSacola[];
   totalItens: number;
   totalValor: number;
-  adicionar: (produto: Produto, quantidade: number) => void;
+  adicionar: (produto: Produto, quantidade: number, tamanho?: string | null) => void;
   definirQuantidade: (id: string, quantidade: number) => void;
   remover: (id: string) => void;
   limpar: () => void;
