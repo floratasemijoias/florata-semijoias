@@ -48,20 +48,22 @@ export function SacolaProvider({ children }: { children: ReactNode }) {
       itens,
       totalItens: itens.reduce((s, i) => s + i.quantidade, 0),
       totalValor: itens.reduce((s, i) => s + i.quantidade * i.preco, 0),
-      adicionar: (produto, quantidade) =>
+      adicionar: (produto, quantidade, tamanho) =>
         setItens((atual) => {
-          const existente = atual.find((i) => i.id === produto.id);
+          const tam = tamanho ?? produto.tamanho ?? null;
+          const chave = tam ? `${produto.id}::${tam}` : produto.id;
+          const existente = atual.find((i) => i.id === chave);
           if (existente) {
             return atual.map((i) =>
-              i.id === produto.id ? { ...i, quantidade: i.quantidade + quantidade } : i,
+              i.id === chave ? { ...i, quantidade: i.quantidade + quantidade } : i,
             );
           }
           return [
             ...atual,
             {
-              id: produto.id,
+              id: chave,
               nome: produto.nome,
-              tamanho: produto.tamanho,
+              tamanho: tam,
               preco: Number(produto.preco),
               imagem_url: produto.imagem_url,
               quantidade,
