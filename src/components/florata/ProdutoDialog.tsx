@@ -121,7 +121,11 @@ export function ProdutoDialog({
                     size="lg"
                     className="flex-1"
                     onClick={() => {
-                      adicionar(produto, qtd);
+                      if (tamanhos.length > 1 && !tamanho) {
+                        toast.error("Escolha um tamanho");
+                        return;
+                      }
+                      adicionar(produto, qtd, tamanho ?? tamanhos[0] ?? null);
                       toast.success("Adicionado à sacola");
                       onFechar();
                     }}
