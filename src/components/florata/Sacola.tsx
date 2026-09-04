@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Copy, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useSacola } from "@/lib/carrinho";
+import { useSacola, type ItemSacola } from "@/lib/carrinho";
+import {
+  trackBeginCheckout,
+  trackPedidoEnviado,
+  trackRemoveFromCart,
+  trackViewCart,
+  type GtmItem,
+} from "@/lib/gtm";
 import {
   BLOCOS_HORARIO,
   PIX_CHAVE,
@@ -17,6 +24,17 @@ import {
 } from "@/lib/florata";
 
 type Pagamento = "Pix" | "Cartão de crédito" | "Cartão de débito" | "Dinheiro";
+
+function paraGtmItem(item: ItemSacola): GtmItem {
+  return {
+    item_id: item.produtoId ?? item.id.split("::")[0]!,
+    item_name: item.nome,
+    price: item.preco,
+    quantity: item.quantidade,
+    ...(item.categoria ? { item_category: item.categoria } : {}),
+    ...(item.tamanho ? { item_variant: item.tamanho } : {}),
+  };
+}
 
 export function BarraSacola({ onAbrir }: { onAbrir: () => void }) {
   const { totalItens, totalValor } = useSacola();
@@ -57,6 +75,13 @@ export function SacolaSheet({
   const { itens, totalValor, definirQuantidade, remover, limpar } = useSacola();
   const [etapa, setEtapa] = useState<"itens" | "checkout">("itens");
   const [copiado, setCopiado] = useState(false);
+
+  useEffect(() => {
+    if (!aberta || itens.length === 0) return;
+    trackViewCart(itens.map(paraGtmItem), totalValor);
+    // dispara apenas ao abrir a sacola
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberta]);
 
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -120,6 +145,8 @@ export function SacolaSheet({
       "",
       "Horário sugerido, a confirmar pelo WhatsApp.",
     ].join("\n");
+
+    trackPedidoEnviado(itens.map(paraGtmItem), totalValor);
 
     window.open(linkWhatsApp(mensagem), "_blank", "noopener,noreferrer");
     limpar();
@@ -192,7 +219,10 @@ export function SacolaSheet({
                         </div>
                         <button
                           type="button"
-                          onClick={() => remover(item.id)}
+                          onClick={() => {
+                            trackRemoveFromCart(paraGtmItem(item));
+                            remover(item.id);
+                          }}
                           aria-label="Remover item"
                           className="grid h-8 w-8 cursor-pointer place-items-center rounded-full text-muted-foreground hover:text-destructive"
                         >
@@ -359,7 +389,15 @@ export function SacolaSheet({
               <span className="text-lg font-medium text-primary">{formatarPreco(totalValor)}</span>
             </div>
             {etapa === "itens" ? (
-              <Button variant="gold" size="lg" className="w-full" onClick={() => setEtapa("checkout")}>
+              <Button
+                variant="gold"
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  trackBeginCheckout(itens.map(paraGtmItem), totalValor);
+                  setEtapa("checkout");
+                }}
+              >
                 Continuar
               </Button>
             ) : (

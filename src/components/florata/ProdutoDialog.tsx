@@ -136,7 +136,16 @@ export function ProdutoDialog({
                         toast.error("Escolha um tamanho");
                         return;
                       }
-                      adicionar(produto, qtd, tamanho ?? tamanhos[0] ?? null);
+                      const tamEscolhido = tamanho ?? tamanhos[0] ?? null;
+                      adicionar(produto, qtd, tamEscolhido);
+                      trackAddToCart({
+                        item_id: produto.id,
+                        item_name: produto.nome,
+                        price: Number(produto.preco),
+                        quantity: qtd,
+                        item_category: produto.categoria,
+                        ...(tamEscolhido ? { item_variant: tamEscolhido } : {}),
+                      });
                       toast.success("Adicionado à sacola");
                       onFechar();
                     }}

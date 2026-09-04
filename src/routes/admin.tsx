@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminBanners } from "@/components/florata/AdminBanners";
+import { AdminRastreamento } from "@/components/florata/AdminRastreamento";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { formatarPreco, type Produto } from "@/lib/florata";
@@ -437,8 +438,9 @@ function Painel() {
         )}
       </main>
 
-      <div className="mx-auto max-w-5xl px-4 pb-10">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 pb-10">
         <AdminBanners />
+        <AdminRastreamento />
       </div>
 
       <FormularioProduto
