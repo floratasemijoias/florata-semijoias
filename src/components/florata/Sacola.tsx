@@ -146,6 +146,8 @@ export function SacolaSheet({
       "Horário sugerido, a confirmar pelo WhatsApp.",
     ].join("\n");
 
+    trackPedidoEnviado(itens.map(paraGtmItem), totalValor);
+
     window.open(linkWhatsApp(mensagem), "_blank", "noopener,noreferrer");
     limpar();
     onOpenChange(false);
@@ -217,7 +219,10 @@ export function SacolaSheet({
                         </div>
                         <button
                           type="button"
-                          onClick={() => remover(item.id)}
+                          onClick={() => {
+                            trackRemoveFromCart(paraGtmItem(item));
+                            remover(item.id);
+                          }}
                           aria-label="Remover item"
                           className="grid h-8 w-8 cursor-pointer place-items-center rounded-full text-muted-foreground hover:text-destructive"
                         >
@@ -384,7 +389,15 @@ export function SacolaSheet({
               <span className="text-lg font-medium text-primary">{formatarPreco(totalValor)}</span>
             </div>
             {etapa === "itens" ? (
-              <Button variant="gold" size="lg" className="w-full" onClick={() => setEtapa("checkout")}>
+              <Button
+                variant="gold"
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  trackBeginCheckout(itens.map(paraGtmItem), totalValor);
+                  setEtapa("checkout");
+                }}
+              >
                 Continuar
               </Button>
             ) : (
