@@ -25,6 +25,17 @@ import {
 
 type Pagamento = "Pix" | "Cartão de crédito" | "Cartão de débito" | "Dinheiro";
 
+function paraGtmItem(item: ItemSacola): GtmItem {
+  return {
+    item_id: item.produtoId ?? item.id.split("::")[0]!,
+    item_name: item.nome,
+    price: item.preco,
+    quantity: item.quantidade,
+    ...(item.categoria ? { item_category: item.categoria } : {}),
+    ...(item.tamanho ? { item_variant: item.tamanho } : {}),
+  };
+}
+
 export function BarraSacola({ onAbrir }: { onAbrir: () => void }) {
   const { totalItens, totalValor } = useSacola();
   if (totalItens === 0) return null;
