@@ -76,6 +76,13 @@ export function SacolaSheet({
   const [etapa, setEtapa] = useState<"itens" | "checkout">("itens");
   const [copiado, setCopiado] = useState(false);
 
+  useEffect(() => {
+    if (!aberta || itens.length === 0) return;
+    trackViewCart(itens.map(paraGtmItem), totalValor);
+    // dispara apenas ao abrir a sacola
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberta]);
+
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [rua, setRua] = useState("");
