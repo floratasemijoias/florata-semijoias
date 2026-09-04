@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SacolaProvider } from "../lib/carrinho";
 import { Toaster } from "../components/ui/sonner";
+import { GtmLoader } from "../components/florata/GtmLoader";
 
 
 function NotFoundComponent() {
@@ -140,6 +141,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SacolaProvider>
+        <GtmLoader />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster position="top-center" />
