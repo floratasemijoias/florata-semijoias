@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Copy, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useSacola } from "@/lib/carrinho";
+import { useSacola, type ItemSacola } from "@/lib/carrinho";
+import {
+  trackBeginCheckout,
+  trackPedidoEnviado,
+  trackRemoveFromCart,
+  trackViewCart,
+  type GtmItem,
+} from "@/lib/gtm";
 import {
   BLOCOS_HORARIO,
   PIX_CHAVE,
