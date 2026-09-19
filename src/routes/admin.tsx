@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminBanners } from "@/components/florata/AdminBanners";
 import { AdminRastreamento } from "@/components/florata/AdminRastreamento";
+import { ImportarProdutos } from "@/components/florata/ImportarProdutos";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { formatarPreco, type Produto } from "@/lib/florata";
@@ -270,6 +271,7 @@ function Painel() {
             <Button variant="gold" onClick={() => setForm({ ...vazio })}>
               <Plus className="h-4 w-4" /> Novo
             </Button>
+            <ImportarProdutos />
             <Button
               variant="outline"
               size="icon"
