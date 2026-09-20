@@ -5,7 +5,6 @@ import { Header } from "@/components/florata/Header";
 import { Banners } from "@/components/florata/Banners";
 import { Filtros } from "@/components/florata/Filtros";
 import { ProdutoCard } from "@/components/florata/ProdutoCard";
-import { ProdutoDialog } from "@/components/florata/ProdutoDialog";
 import { BarraSacola, SacolaSheet } from "@/components/florata/Sacola";
 import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,7 +64,6 @@ function Catalogo() {
 
   const { totalItens } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
-  const [selecionado, setSelecionado] = useState<Produto | null>(null);
   const [categoria, setCategoria] = useState(TODOS_PRODUTOS);
   const [semente, setSemente] = useState(1);
 
@@ -137,7 +135,7 @@ function Catalogo() {
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {filtrados.map((p) => (
-              <ProdutoCard key={p.id} produto={p} onSelecionar={setSelecionado} />
+              <ProdutoCard key={p.id} produto={p} />
             ))}
           </div>
         )}
@@ -150,7 +148,6 @@ function Catalogo() {
         </p>
       </footer>
 
-      <ProdutoDialog produto={selecionado} onFechar={() => setSelecionado(null)} />
       <BarraSacola onAbrir={() => setSacolaAberta(true)} />
       <SacolaSheet aberta={sacolaAberta} onOpenChange={setSacolaAberta} />
       <WhatsappFab deslocado={totalItens > 0} />
