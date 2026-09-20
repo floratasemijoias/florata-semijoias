@@ -5,6 +5,10 @@ export const PIX_CHAVE = "51997897864";
 // e com página própria em /personalizados.
 export const CATEGORIA_DESTAQUE = "Personalizados";
 
+// Rótulo do filtro "ver tudo" — na home volta pra grade completa; na página
+// de Personalizados, navega de volta pra home.
+export const TODOS_PRODUTOS = "Todos Produtos";
+
 export type Produto = {
   id: string;
   nome: string;
