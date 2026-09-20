@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Header } from "@/components/florata/Header";
@@ -10,7 +10,7 @@ import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useSacola } from "@/lib/carrinho";
-import { CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
+import { CATEGORIA_DESTAQUE, TODOS_PRODUTOS, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/personalizados")({
   head: () => ({
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/personalizados")({
 });
 
 function Personalizados() {
+  const navigate = useNavigate();
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos"],
     queryFn: async () => {
@@ -41,7 +42,8 @@ function Personalizados() {
   const { totalItens } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [selecionado, setSelecionado] = useState<Produto | null>(null);
-  const [subcategoria, setSubcategoria] = useState("Todas");
+  // CATEGORIA_DESTAQUE aqui representa "sem filtro de subcategoria" (mostra tudo).
+  const [subcategoria, setSubcategoria] = useState(CATEGORIA_DESTAQUE);
 
   const lista = (produtos ?? []).filter(
     (p) => p.categoria.trim().toLowerCase() === CATEGORIA_DESTAQUE.toLowerCase(),
@@ -51,8 +53,12 @@ function Personalizados() {
     new Set(lista.map((p) => p.subcategoria).filter((s): s is string => !!s)),
   ).sort();
 
+  const categoriasFiltro = [TODOS_PRODUTOS, CATEGORIA_DESTAQUE, ...subcategorias];
+
   const filtrados =
-    subcategoria === "Todas" ? lista : lista.filter((p) => p.subcategoria === subcategoria);
+    subcategoria === CATEGORIA_DESTAQUE
+      ? lista
+      : lista.filter((p) => p.subcategoria === subcategoria);
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -66,13 +72,17 @@ function Personalizados() {
           <p className="text-sm text-muted-foreground">Semijoias feitas sob medida pra você.</p>
         </div>
 
-        {subcategorias.length > 0 && (
-          <Filtros
-            categorias={subcategorias}
-            categoriaAtiva={subcategoria}
-            onCategoria={setSubcategoria}
-          />
-        )}
+        <Filtros
+          categorias={categoriasFiltro}
+          categoriaAtiva={subcategoria}
+          onCategoria={(c) => {
+            if (c === TODOS_PRODUTOS) {
+              navigate({ to: "/" });
+              return;
+            }
+            setSubcategoria(c);
+          }}
+        />
 
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
