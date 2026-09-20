@@ -11,7 +11,7 @@ import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useSacola } from "@/lib/carrinho";
-import { CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
+import { CATEGORIA_DESTAQUE, TODOS_PRODUTOS, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -66,7 +66,7 @@ function Catalogo() {
   const { totalItens } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [selecionado, setSelecionado] = useState<Produto | null>(null);
-  const [categoria, setCategoria] = useState("Todas");
+  const [categoria, setCategoria] = useState(TODOS_PRODUTOS);
   const [semente, setSemente] = useState(1);
 
   useEffect(() => {
@@ -82,7 +82,8 @@ function Catalogo() {
       (c) => c.trim().toLowerCase() !== CATEGORIA_DESTAQUE.toLowerCase(),
     );
     const destaque = nomes.find((c) => c.trim().toLowerCase() === CATEGORIA_DESTAQUE.toLowerCase());
-    return destaque ? [destaque, ...semDestaque] : nomes;
+    const base = destaque ? [destaque, ...semDestaque] : nomes;
+    return [TODOS_PRODUTOS, ...base];
   }, [lista]);
 
   const embaralhados = useMemo(() => {
@@ -98,7 +99,7 @@ function Catalogo() {
 
   const filtrados = useMemo(
     () =>
-      categoria === "Todas"
+      categoria === TODOS_PRODUTOS
         ? embaralhados
         : embaralhados.filter((p) => p.categoria === categoria),
     [embaralhados, categoria],
