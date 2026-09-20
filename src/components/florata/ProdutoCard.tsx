@@ -1,19 +1,14 @@
+import { Link } from "@tanstack/react-router";
 import { Flower2 } from "lucide-react";
 import { formatarPreco, type Produto } from "@/lib/florata";
 
-export function ProdutoCard({
-  produto,
-  onSelecionar,
-}: {
-  produto: Produto;
-  onSelecionar: (p: Produto) => void;
-}) {
+export function ProdutoCard({ produto }: { produto: Produto }) {
   const esgotado = !produto.disponivel;
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelecionar(produto)}
+    <Link
+      to="/produto/$id"
+      params={{ id: produto.id }}
       className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-border bg-card text-left transition-shadow hover:shadow-soft"
     >
       <div className="relative aspect-4/5 w-full overflow-hidden bg-accent/40">
@@ -52,6 +47,6 @@ export function ProdutoCard({
         </div>
 
       </div>
-    </button>
+    </Link>
   );
 }
