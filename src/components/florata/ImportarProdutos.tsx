@@ -90,6 +90,7 @@ export function ImportarProdutos() {
   const [linhas, setLinhas] = useState<LinhaImportada[]>([]);
   const [nomeArquivo, setNomeArquivo] = useState("");
   const [importando, setImportando] = useState(false);
+  const [arrastando, setArrastando] = useState(false);
 
   const validas = linhas.filter((l) => !l.erro);
   const invalidas = linhas.filter((l) => l.erro);
@@ -101,8 +102,7 @@ export function ImportarProdutos() {
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  function selecionarArquivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const arquivo = e.target.files?.[0];
+  function processarSelecao(arquivo: File | undefined | null) {
     if (!arquivo) return;
     setNomeArquivo(arquivo.name);
     const leitor = new FileReader();
@@ -117,6 +117,13 @@ export function ImportarProdutos() {
     };
     leitor.onerror = () => toast.error("Não foi possível ler o arquivo");
     leitor.readAsText(arquivo, "utf-8");
+  }
+
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setArrastando(false);
+    processarSelecao(e.dataTransfer.files?.[0]);
   }
 
   async function importar() {
@@ -185,14 +192,33 @@ export function ImportarProdutos() {
                 Baixar planilha modelo
               </Button>
 
-              <div className="rounded-lg border border-dashed border-border p-6 text-center">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => inputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setArrastando(true);
+                }}
+                onDragLeave={() => setArrastando(false)}
+                onDrop={onDrop}
+                className={`cursor-pointer rounded-lg border border-dashed p-6 text-center transition-colors ${
+                  arrastando ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                }`}
+              >
                 <Upload className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">
+                  Clique para escolher ou arraste o arquivo aqui
+                </p>
                 <input
                   ref={inputRef}
                   type="file"
                   accept=".csv,text/csv"
-                  onChange={selecionarArquivo}
-                  className="mx-auto block w-full max-w-xs text-sm"
+                  onChange={(e) => processarSelecao(e.target.files?.[0])}
+                  className="hidden"
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
                   Arquivo .csv exportado do Excel, Google Sheets ou Numbers
