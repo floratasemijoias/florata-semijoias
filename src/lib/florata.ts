@@ -1,10 +1,15 @@
 export const WHATSAPP_NUMERO = "5551997897864";
 export const PIX_CHAVE = "51997897864";
 
+// Categoria fixada primeiro na lista de filtros (só quando tem produtos nela)
+// e com página própria em /personalizados.
+export const CATEGORIA_DESTAQUE = "Personalizados";
+
 export type Produto = {
   id: string;
   nome: string;
   categoria: string;
+  subcategoria: string | null;
   tamanho: string | null;
   preco: number;
   disponivel: boolean;
