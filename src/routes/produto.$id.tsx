@@ -94,15 +94,16 @@ function ProdutoPagina() {
     <div className="min-h-screen bg-background pb-28">
       <Header onAbrirSacola={() => setSacolaAberta(true)} />
 
-      <main className="mx-auto max-w-2xl space-y-4 px-4 py-6">
+      <main className="mx-auto max-w-5xl px-4 py-6">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary md:mb-6"
         >
           <ArrowLeft className="h-4 w-4" /> Voltar ao catálogo
         </Link>
 
-        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-accent/40">
+        <div className="md:grid md:grid-cols-2 md:items-start md:gap-10">
+        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-accent/40 md:sticky md:top-6">
           {produto.imagem_url ? (
             <img
               src={produto.imagem_url}
@@ -121,7 +122,7 @@ function ProdutoPagina() {
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pt-4 md:pt-0">
           <div className="space-y-1">
             <span className="text-[10px] tracking-brand text-muted-foreground uppercase">
               {produto.categoria}
@@ -216,6 +217,7 @@ function ProdutoPagina() {
               próxima disponibilidade.
             </p>
           )}
+        </div>
         </div>
       </main>
 
