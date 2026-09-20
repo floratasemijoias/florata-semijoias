@@ -17,6 +17,7 @@ export type Produto = {
   tamanho: string | null;
   preco: number;
   disponivel: boolean;
+  visivel: boolean;
   quantidade: number | null;
   descricao: string | null;
   imagem_url: string | null;
