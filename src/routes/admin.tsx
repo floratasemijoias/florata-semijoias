@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { Eye, EyeOff, Loader2, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -234,6 +234,26 @@ function Painel() {
     );
   }
 
+  const ultimoClicadoRef = useRef<string | null>(null);
+
+  function selecionarComShift(id: string, evento: React.MouseEvent) {
+    if (evento.shiftKey && ultimoClicadoRef.current) {
+      const ids = listaFiltrada.map((p) => p.id);
+      const indiceAtual = ids.indexOf(id);
+      const indiceUltimo = ids.indexOf(ultimoClicadoRef.current);
+      if (indiceAtual !== -1 && indiceUltimo !== -1) {
+        const [inicio, fim] =
+          indiceAtual < indiceUltimo ? [indiceAtual, indiceUltimo] : [indiceUltimo, indiceAtual];
+        const intervalo = ids.slice(inicio, fim + 1);
+        setSelecionados((atual) => Array.from(new Set([...atual, ...intervalo])));
+        ultimoClicadoRef.current = id;
+        return;
+      }
+    }
+    alternarSelecao(id);
+    ultimoClicadoRef.current = id;
+  }
+
   function editarSelecionado() {
     if (selecionadosVisiveis.length > 1) {
       setLote(selecionadosVisiveis);
@@ -395,7 +415,7 @@ function Painel() {
               <li key={p.id} className="flex items-center gap-3 bg-card p-3">
                 <Checkbox
                   checked={selecionados.includes(p.id)}
-                  onCheckedChange={() => alternarSelecao(p.id)}
+                  onClick={(e) => selecionarComShift(p.id, e)}
                   aria-label={`Selecionar ${p.nome}`}
                 />
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md bg-accent/40">
