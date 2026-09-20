@@ -9,7 +9,7 @@ export function Filtros({
 }) {
   return (
     <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-      {["Todas", ...categorias].map((cat) => {
+      {categorias.map((cat) => {
         const ativa = categoriaAtiva === cat;
         return (
           <button
