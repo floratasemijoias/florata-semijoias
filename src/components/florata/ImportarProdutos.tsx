@@ -20,6 +20,7 @@ import {
 type LinhaImportada = {
   nome: string;
   categoria: string;
+  subcategoria: string | null;
   tamanho: string | null;
   preco: number | null;
   quantidade: number | null;
@@ -28,13 +29,25 @@ type LinhaImportada = {
   erro: string | null;
 };
 
-const CAMPOS_ESPERADOS = ["nome", "categoria", "tamanho", "preco", "quantidade", "descricao", "disponivel"];
+const CAMPOS_ESPERADOS = [
+  "nome",
+  "categoria",
+  "subcategoria",
+  "tamanho",
+  "preco",
+  "quantidade",
+  "descricao",
+  "disponivel",
+];
 
 function baixarModelo() {
-  const cabecalho = "nome;categoria;tamanho;preco;quantidade;descricao;disponivel";
-  const exemplo1 = 'Colar Gota Dourada;Colares;Único;129,90;5;Colar folheado a ouro com pingente gota;sim';
-  const exemplo2 = "Brinco Argola Pequena;Brincos;P, M;79,50;10;;sim";
-  const conteudo = "\uFEFF" + [cabecalho, exemplo1, exemplo2].join("\n");
+  const cabecalho = "nome;categoria;subcategoria;tamanho;preco;quantidade;descricao;disponivel";
+  const exemplo1 =
+    'Colar Gota Dourada;Colares;;Único;129,90;5;Colar folheado a ouro com pingente gota;sim';
+  const exemplo2 = "Brinco Argola Pequena;Brincos;;P, M;79,50;10;;sim";
+  const exemplo3 =
+    "Anel Solitário Personalizado;Personalizados;Anéis;Único;149,90;3;Anel com gravação à escolha;sim";
+  const conteudo = "\uFEFF" + [cabecalho, exemplo1, exemplo2, exemplo3].join("\n");
   const blob = new Blob([conteudo], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -73,6 +86,7 @@ function processarArquivo(texto: string): LinhaImportada[] {
       return {
         nome,
         categoria,
+        subcategoria: registro.subcategoria?.trim() || null,
         tamanho: registro.tamanho ? normalizarTamanho(registro.tamanho) : null,
         preco,
         quantidade: registro.quantidade ? parseQuantidade(registro.quantidade) : null,
@@ -133,6 +147,7 @@ export function ImportarProdutos() {
       const payload: TablesInsert<"produtos">[] = validas.map((l) => ({
         nome: l.nome,
         categoria: l.categoria,
+        subcategoria: l.subcategoria,
         tamanho: l.tamanho,
         preco: l.preco ?? 0,
         quantidade: l.quantidade,
@@ -184,7 +199,9 @@ export function ImportarProdutos() {
                   {CAMPOS_ESPERADOS.join(", ")}
                 </span>
                 . Apenas <span className="font-medium text-foreground">nome</span> e{" "}
-                <span className="font-medium text-foreground">categoria</span> são obrigatórios. As
+                <span className="font-medium text-foreground">categoria</span> são obrigatórios.
+                A <span className="font-medium text-foreground">subcategoria</span> só faz sentido
+                pra produtos da categoria "Personalizados" — vira filtro na página dela. As
                 fotos não entram na planilha — adicione depois, editando cada produto.
               </p>
 
@@ -247,6 +264,7 @@ export function ImportarProdutos() {
                     <tr>
                       <th className="p-2">Nome</th>
                       <th className="p-2">Categoria</th>
+                      <th className="p-2">Subcat.</th>
                       <th className="p-2">Tamanho</th>
                       <th className="p-2">Preço</th>
                       <th className="p-2">Qtd.</th>
@@ -264,6 +282,7 @@ export function ImportarProdutos() {
                           {l.erro && <p className="text-[10px] text-destructive">{l.erro}</p>}
                         </td>
                         <td className="p-2">{l.categoria || "—"}</td>
+                        <td className="p-2">{l.subcategoria ?? "—"}</td>
                         <td className="p-2">{l.tamanho ?? "—"}</td>
                         <td className="p-2">{l.preco != null ? formatarPreco(l.preco) : "—"}</td>
                         <td className="p-2">{l.quantidade ?? "—"}</td>
