@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Flower2, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Flower2, Minus, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/florata/Header";
@@ -54,6 +54,24 @@ function ProdutoPagina() {
   const [tamanho, setTamanho] = useState<string | null>(
     tamanhos.length === 1 ? tamanhos[0]! : null,
   );
+
+  async function compartilhar() {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Fallback pra navegadores/contextos sem Clipboard API (ex.: HTTP sem TLS).
+      const campo = document.createElement("textarea");
+      campo.value = url;
+      campo.style.position = "fixed";
+      campo.style.opacity = "0";
+      document.body.appendChild(campo);
+      campo.select();
+      document.execCommand("copy");
+      document.body.removeChild(campo);
+    }
+    toast.success("Link copiado!");
+  }
 
   useEffect(() => {
     if (!produto) return;
@@ -124,9 +142,18 @@ function ProdutoPagina() {
 
         <div className="space-y-4 pt-4 md:pt-0">
           <div className="space-y-1">
-            <span className="text-[10px] tracking-brand text-muted-foreground uppercase">
-              {produto.categoria}
-            </span>
+            <div className="flex items-start justify-between gap-3">
+              <span className="text-[10px] tracking-brand text-muted-foreground uppercase">
+                {produto.categoria}
+              </span>
+              <button
+                type="button"
+                onClick={compartilhar}
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs text-muted-foreground hover:text-primary"
+              >
+                <Share2 className="h-3.5 w-3.5" /> Compartilhar
+              </button>
+            </div>
             <h1 className="font-times text-2xl font-semibold text-primary">{produto.nome}</h1>
           </div>
 
