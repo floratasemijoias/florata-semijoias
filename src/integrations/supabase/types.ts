@@ -58,6 +58,7 @@ export type Database = {
           nome: string
           preco: number
           quantidade: number | null
+          subcategoria: string | null
           tamanho: string | null
         }
         Insert: {
@@ -70,6 +71,7 @@ export type Database = {
           nome: string
           preco?: number
           quantidade?: number | null
+          subcategoria?: string | null
           tamanho?: string | null
         }
         Update: {
@@ -82,6 +84,7 @@ export type Database = {
           nome?: string
           preco?: number
           quantidade?: number | null
+          subcategoria?: string | null
           tamanho?: string | null
         }
         Relationships: []
