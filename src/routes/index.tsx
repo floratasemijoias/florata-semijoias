@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/florata/Header";
@@ -11,7 +11,7 @@ import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useSacola } from "@/lib/carrinho";
-import type { Produto } from "@/lib/florata";
+import { CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,6 +50,7 @@ function obterSemente() {
 }
 
 function Catalogo() {
+  const navigate = useNavigate();
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos"],
     queryFn: async () => {
@@ -74,10 +75,15 @@ function Catalogo() {
 
   const lista = produtos ?? [];
 
-  const categorias = useMemo(
-    () => Array.from(new Set(lista.map((p) => p.categoria).filter(Boolean))).sort(),
-    [lista],
-  );
+  const categorias = useMemo(() => {
+    const nomes = Array.from(new Set(lista.map((p) => p.categoria).filter(Boolean))).sort();
+    // "Personalizados" só aparece (e fica primeiro) se houver produtos cadastrados nela.
+    const semDestaque = nomes.filter(
+      (c) => c.trim().toLowerCase() !== CATEGORIA_DESTAQUE.toLowerCase(),
+    );
+    const destaque = nomes.find((c) => c.trim().toLowerCase() === CATEGORIA_DESTAQUE.toLowerCase());
+    return destaque ? [destaque, ...semDestaque] : nomes;
+  }, [lista]);
 
   const embaralhados = useMemo(() => {
     const arr = [...lista];
@@ -105,7 +111,17 @@ function Catalogo() {
       <Banners />
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-        <Filtros categorias={categorias} categoriaAtiva={categoria} onCategoria={setCategoria} />
+        <Filtros
+          categorias={categorias}
+          categoriaAtiva={categoria}
+          onCategoria={(c) => {
+            if (c.trim().toLowerCase() === CATEGORIA_DESTAQUE.toLowerCase()) {
+              navigate({ to: "/personalizados" });
+              return;
+            }
+            setCategoria(c);
+          }}
+        />
 
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
