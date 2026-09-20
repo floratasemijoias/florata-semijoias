@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { Loader2, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogOut, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -116,6 +116,7 @@ type FormProduto = {
   preco: string;
   descricao: string;
   disponivel: boolean;
+  visivel: boolean;
   quantidade: string;
   imagem_url: string | null;
 };
@@ -128,6 +129,7 @@ const vazio: FormProduto = {
   preco: "",
   descricao: "",
   disponivel: true,
+  visivel: true,
   quantidade: "1",
 
   imagem_url: null,
@@ -196,6 +198,19 @@ function Painel() {
     invalidar();
   }
 
+  async function alternarVisibilidade(p: Produto) {
+    const { error } = await supabase
+      .from("produtos")
+      .update({ visivel: !p.visivel })
+      .eq("id", p.id);
+    if (error) {
+      toast.error("Não foi possível atualizar");
+      return;
+    }
+    toast.success(!p.visivel ? "Produto visível na loja" : "Produto oculto da loja");
+    invalidar();
+  }
+
   async function remover(p: Produto) {
     if (!confirm(`Remover "${p.nome}"?`)) return;
     const { error } = await supabase.from("produtos").delete().eq("id", p.id);
@@ -235,6 +250,7 @@ function Painel() {
       preco: String(p.preco),
       descricao: p.descricao ?? "",
       disponivel: p.disponivel,
+      visivel: p.visivel,
       quantidade: p.quantidade != null ? String(p.quantidade) : "",
       imagem_url: p.imagem_url,
     });
@@ -400,6 +416,7 @@ function Painel() {
                     ) : (
                       <span className="text-destructive">Esgotado</span>
                     )}
+                    {!p.visivel && <span className="text-destructive"> · Oculto da loja</span>}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -408,6 +425,14 @@ function Painel() {
                     onCheckedChange={() => alternarDisponibilidade(p)}
                     aria-label="Disponibilidade"
                   />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label={p.visivel ? "Ocultar da loja" : "Tornar visível na loja"}
+                    onClick={() => alternarVisibilidade(p)}
+                  >
+                    {p.visivel ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon"
@@ -422,6 +447,7 @@ function Painel() {
                         preco: String(p.preco),
                         descricao: p.descricao ?? "",
                         disponivel: p.disponivel,
+                        visivel: p.visivel,
                         quantidade: p.quantidade != null ? String(p.quantidade) : "",
                         imagem_url: p.imagem_url,
                       })
@@ -481,6 +507,7 @@ type LinhaLote = {
   quantidade: string;
   descricao: string;
   disponivel: boolean;
+  visivel: boolean;
 };
 
 type CampoTexto = "nome" | "categoria" | "tamanho" | "preco" | "quantidade" | "descricao";
@@ -555,6 +582,7 @@ function FormularioLote({
           quantidade: p.quantidade != null ? String(p.quantidade) : "",
           descricao: p.descricao ?? "",
           disponivel: p.disponivel,
+          visivel: p.visivel,
         })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -571,6 +599,10 @@ function FormularioLote({
 
   function aplicarDisponibilidade(valor: boolean) {
     setLinhas((atual) => atual.map((l) => ({ ...l, disponivel: valor })));
+  }
+
+  function aplicarVisibilidade(valor: boolean) {
+    setLinhas((atual) => atual.map((l) => ({ ...l, visivel: valor })));
   }
 
   async function salvar(e: React.FormEvent) {
@@ -590,6 +622,7 @@ function FormularioLote({
           quantidade: l.quantidade ? Number(l.quantidade) : null,
           descricao: l.descricao.trim() || null,
           disponivel: l.disponivel,
+          visivel: l.visivel,
         };
         return supabase.from("produtos").update(payload).eq("id", l.id);
       }),
@@ -603,7 +636,8 @@ function FormularioLote({
     onSalvo();
   }
 
-  const colunas = "grid grid-cols-[2fr_1.4fr_1fr_1fr_1fr_2fr_auto] gap-2 min-w-[900px] items-start";
+  const colunas =
+    "grid grid-cols-[2fr_1.4fr_1fr_1fr_1fr_2fr_auto_auto] gap-2 min-w-[980px] items-start";
 
   return (
     <Dialog open={!!ids} onOpenChange={(v) => !v && onFechar()}>
@@ -677,6 +711,7 @@ function FormularioLote({
                 <span>Quantidade</span>
                 <span>Descrição</span>
                 <span>Disponível</span>
+                <span>Visível</span>
               </div>
 
               <div className={`${colunas} rounded-md border border-gold bg-accent/40 p-2`}>
@@ -720,6 +755,13 @@ function FormularioLote({
                     aria-label="Disponibilidade padrão"
                   />
                 </div>
+                <div className="flex h-9 items-center justify-center">
+                  <Switch
+                    checked={linhas.every((l) => l.visivel)}
+                    onCheckedChange={aplicarVisibilidade}
+                    aria-label="Visibilidade padrão"
+                  />
+                </div>
               </div>
 
               {linhas.map((l) => (
@@ -760,6 +802,13 @@ function FormularioLote({
                       checked={l.disponivel}
                       onCheckedChange={(v) => alterar(l.id, "disponivel", v)}
                       aria-label={`Disponibilidade de ${l.nome}`}
+                    />
+                  </div>
+                  <div className="flex h-9 items-center justify-center">
+                    <Switch
+                      checked={l.visivel}
+                      onCheckedChange={(v) => alterar(l.id, "visivel", v)}
+                      aria-label={`Visibilidade de ${l.nome}`}
                     />
                   </div>
                 </div>
@@ -829,6 +878,7 @@ function FormularioProduto({
         preco: Number(dados.preco.replace(",", ".")) || 0,
         descricao: dados.descricao.trim() || null,
         disponivel: dados.disponivel,
+        visivel: dados.visivel,
         quantidade: dados.quantidade ? Number(dados.quantidade) : null,
         imagem_url,
       };
@@ -977,6 +1027,19 @@ function FormularioProduto({
               id="p-disp"
               checked={dados.disponivel}
               onCheckedChange={(v) => setDados({ ...dados, disponivel: v })}
+            />
+          </div>
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <Label htmlFor="p-vis">Visível na loja</Label>
+              <p className="text-[11px] text-muted-foreground">
+                Desligue pra tirar o produto do catálogo sem excluí-lo.
+              </p>
+            </div>
+            <Switch
+              id="p-vis"
+              checked={dados.visivel}
+              onCheckedChange={(v) => setDados({ ...dados, visivel: v })}
             />
           </div>
           <Button type="submit" variant="gold" className="w-full" disabled={salvando}>
