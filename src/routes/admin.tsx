@@ -16,7 +16,7 @@ import { AdminRastreamento } from "@/components/florata/AdminRastreamento";
 import { ImportarProdutos } from "@/components/florata/ImportarProdutos";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { formatarPreco, type Produto } from "@/lib/florata";
+import { formatarPreco, CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -111,6 +111,7 @@ type FormProduto = {
   id?: string;
   nome: string;
   categoria: string;
+  subcategoria: string;
   tamanho: string;
   preco: string;
   descricao: string;
@@ -122,6 +123,7 @@ type FormProduto = {
 const vazio: FormProduto = {
   nome: "",
   categoria: "",
+  subcategoria: "",
   tamanho: "",
   preco: "",
   descricao: "",
@@ -228,6 +230,7 @@ function Painel() {
       id: p.id,
       nome: p.nome,
       categoria: p.categoria,
+      subcategoria: p.subcategoria ?? "",
       tamanho: p.tamanho ?? "",
       preco: String(p.preco),
       descricao: p.descricao ?? "",
@@ -414,6 +417,7 @@ function Painel() {
                         id: p.id,
                         nome: p.nome,
                         categoria: p.categoria,
+                        subcategoria: p.subcategoria ?? "",
                         tamanho: p.tamanho ?? "",
                         preco: String(p.preco),
                         descricao: p.descricao ?? "",
@@ -821,6 +825,7 @@ function FormularioProduto({
       const base = {
         nome: dados.nome.trim(),
         categoria: dados.categoria.trim(),
+        subcategoria: dados.subcategoria.trim() || null,
         preco: Number(dados.preco.replace(",", ".")) || 0,
         descricao: dados.descricao.trim() || null,
         disponivel: dados.disponivel,
@@ -884,20 +889,33 @@ function FormularioProduto({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="p-tam">Tamanho(s)</Label>
+              <Label htmlFor="p-subcat">Subcategoria</Label>
               <Input
-                id="p-tam"
-                value={dados.tamanho}
-                maxLength={120}
-                placeholder="Ex.: 16, 17, 18"
-                onChange={(e) => setDados({ ...dados, tamanho: e.target.value })}
+                id="p-subcat"
+                value={dados.subcategoria}
+                maxLength={60}
+                placeholder="Opcional"
+                onChange={(e) => setDados({ ...dados, subcategoria: e.target.value })}
               />
-              <p className="text-[11px] text-muted-foreground">
-                Separe por vírgula: o cliente escolhe o tamanho na página do produto.
-              </p>
+              {dados.categoria.trim().toLowerCase() === CATEGORIA_DESTAQUE.toLowerCase() && (
+                <p className="text-[11px] text-muted-foreground">
+                  Vira filtro na página de {CATEGORIA_DESTAQUE}.
+                </p>
+              )}
             </div>
-
-
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="p-tam">Tamanho(s)</Label>
+            <Input
+              id="p-tam"
+              value={dados.tamanho}
+              maxLength={120}
+              placeholder="Ex.: 16, 17, 18"
+              onChange={(e) => setDados({ ...dados, tamanho: e.target.value })}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Separe por vírgula: o cliente escolhe o tamanho na página do produto.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
