@@ -60,6 +60,7 @@ export type Database = {
           quantidade: number | null
           subcategoria: string | null
           tamanho: string | null
+          visivel: boolean
         }
         Insert: {
           categoria: string
@@ -73,6 +74,7 @@ export type Database = {
           quantidade?: number | null
           subcategoria?: string | null
           tamanho?: string | null
+          visivel?: boolean
         }
         Update: {
           categoria?: string
@@ -86,6 +88,7 @@ export type Database = {
           quantidade?: number | null
           subcategoria?: string | null
           tamanho?: string | null
+          visivel?: boolean
         }
         Relationships: []
       }
