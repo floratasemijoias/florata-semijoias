@@ -58,6 +58,7 @@ export type Database = {
           nome: string
           preco: number
           quantidade: number | null
+          slug: string
           subcategoria: string | null
           tamanho: string | null
           visivel: boolean
@@ -72,6 +73,7 @@ export type Database = {
           nome: string
           preco?: number
           quantidade?: number | null
+          slug?: string
           subcategoria?: string | null
           tamanho?: string | null
           visivel?: boolean
@@ -86,6 +88,7 @@ export type Database = {
           nome?: string
           preco?: number
           quantidade?: number | null
+          slug?: string
           subcategoria?: string | null
           tamanho?: string | null
           visivel?: boolean
