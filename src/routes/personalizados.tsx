@@ -1,6 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Header } from "@/components/florata/Header";
 import { Filtros } from "@/components/florata/Filtros";
 import { ProdutoCard } from "@/components/florata/ProdutoCard";
@@ -9,7 +10,9 @@ import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useSacola } from "@/lib/carrinho";
-import { CATEGORIA_DESTAQUE, TODOS_PRODUTOS, type Produto } from "@/lib/florata";
+import { CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
+
+const TODAS_SUBCATEGORIAS = "Todos";
 
 export const Route = createFileRoute("/personalizados")({
   head: () => ({
@@ -25,7 +28,6 @@ export const Route = createFileRoute("/personalizados")({
 });
 
 function Personalizados() {
-  const navigate = useNavigate();
   const { data: produtos, isLoading } = useQuery({
     queryKey: ["produtos"],
     queryFn: async () => {
@@ -40,8 +42,7 @@ function Personalizados() {
 
   const { totalItens } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
-  // CATEGORIA_DESTAQUE aqui representa "sem filtro de subcategoria" (mostra tudo).
-  const [subcategoria, setSubcategoria] = useState(CATEGORIA_DESTAQUE);
+  const [subcategoria, setSubcategoria] = useState(TODAS_SUBCATEGORIAS);
 
   const lista = (produtos ?? []).filter(
     (p) => p.categoria.trim().toLowerCase() === CATEGORIA_DESTAQUE.toLowerCase(),
@@ -51,10 +52,8 @@ function Personalizados() {
     new Set(lista.map((p) => p.subcategoria).filter((s): s is string => !!s)),
   ).sort();
 
-  const categoriasFiltro = [TODOS_PRODUTOS, CATEGORIA_DESTAQUE, ...subcategorias];
-
   const filtrados =
-    subcategoria === CATEGORIA_DESTAQUE
+    subcategoria === TODAS_SUBCATEGORIAS
       ? lista
       : lista.filter((p) => p.subcategoria === subcategoria);
 
@@ -63,6 +62,13 @@ function Personalizados() {
       <Header onAbrirSacola={() => setSacolaAberta(true)} />
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary"
+        >
+          <ArrowLeft className="h-4 w-4" /> Todos os produtos
+        </Link>
+
         <div className="space-y-1">
           <h1 className="font-display text-3xl font-semibold text-primary">
             {CATEGORIA_DESTAQUE}
@@ -70,17 +76,19 @@ function Personalizados() {
           <p className="text-sm text-muted-foreground">Semijoias feitas sob medida pra você.</p>
         </div>
 
-        <Filtros
-          categorias={categoriasFiltro}
-          categoriaAtiva={subcategoria}
-          onCategoria={(c) => {
-            if (c === TODOS_PRODUTOS) {
-              navigate({ to: "/" });
-              return;
-            }
-            setSubcategoria(c);
-          }}
-        />
+        {subcategorias.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[11px] font-medium tracking-brand text-muted-foreground uppercase">
+              Filtrar por tipo
+            </p>
+            <Filtros
+              categorias={[TODAS_SUBCATEGORIAS, ...subcategorias]}
+              categoriaAtiva={subcategoria}
+              onCategoria={setSubcategoria}
+              variante="secundario"
+            />
+          </div>
+        )}
 
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
