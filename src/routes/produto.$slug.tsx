@@ -79,7 +79,7 @@ function ProdutoPagina() {
   useEffect(() => {
     if (!produto) return;
     trackViewItem({
-      item_id: produto.id,
+      item_id: produto.slug,
       item_name: produto.nome,
       price: Number(produto.preco),
       item_category: produto.categoria,
@@ -232,7 +232,7 @@ function ProdutoPagina() {
                   const tamEscolhido = tamanho ?? tamanhos[0] ?? null;
                   adicionar(produto, qtd, tamEscolhido);
                   trackAddToCart({
-                    item_id: produto.id,
+                    item_id: produto.slug,
                     item_name: produto.nome,
                     price: Number(produto.preco),
                     quantity: qtd,
