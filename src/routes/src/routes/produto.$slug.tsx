@@ -13,12 +13,15 @@ import { trackAddToCart, trackViewItem } from "@/lib/gtm";
 
 export const Route = createFileRoute("/produto/$slug")({
   loader: async ({ params }) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("produtos")
       .select("*")
       .eq("slug", params.slug)
       .maybeSingle();
-    return { produto: (data as Produto | null) ?? null };
+    return {
+      produto: (data as Produto | null) ?? null,
+      erro: error ? `${error.code ?? ""} ${error.message}`.trim() : null,
+    };
   },
   head: ({ loaderData }) => {
     const produto = loaderData?.produto;
@@ -46,7 +49,7 @@ export const Route = createFileRoute("/produto/$slug")({
 });
 
 function ProdutoPagina() {
-  const { produto } = Route.useLoaderData();
+  const { produto, erro } = Route.useLoaderData();
   const { adicionar } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [qtd, setQtd] = useState(1);
@@ -88,9 +91,13 @@ function ProdutoPagina() {
       <div className="min-h-screen bg-background pb-28">
         <Header onAbrirSacola={() => setSacolaAberta(true)} />
         <main className="mx-auto max-w-2xl space-y-4 px-4 py-16 text-center">
-          <p className="text-lg font-medium text-primary">Produto não encontrado</p>
+          <p className="text-lg font-medium text-primary">
+            {erro ? "Erro ao carregar o produto" : "Produto não encontrado"}
+          </p>
           <p className="text-sm text-muted-foreground">
-            Ele pode ter sido removido ou o link está incorreto.
+            {erro
+              ? erro
+              : "Ele pode ter sido removido ou o link está incorreto."}
           </p>
           <Link
             to="/"
