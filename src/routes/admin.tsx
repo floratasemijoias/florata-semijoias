@@ -16,7 +16,7 @@ import { AdminRastreamento } from "@/components/florata/AdminRastreamento";
 import { ImportarProdutos } from "@/components/florata/ImportarProdutos";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { formatarPreco, CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
+import { formatarPreco, gerarSlug, CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -110,6 +110,7 @@ function Login() {
 type FormProduto = {
   id?: string;
   nome: string;
+  slug: string;
   categoria: string;
   subcategoria: string;
   tamanho: string;
@@ -123,6 +124,7 @@ type FormProduto = {
 
 const vazio: FormProduto = {
   nome: "",
+  slug: "",
   categoria: "",
   subcategoria: "",
   tamanho: "",
@@ -264,6 +266,7 @@ function Painel() {
     setForm({
       id: p.id,
       nome: p.nome,
+      slug: p.slug,
       categoria: p.categoria,
       subcategoria: p.subcategoria ?? "",
       tamanho: p.tamanho ?? "",
@@ -461,6 +464,7 @@ function Painel() {
                       setForm({
                         id: p.id,
                         nome: p.nome,
+                        slug: p.slug,
                         categoria: p.categoria,
                         subcategoria: p.subcategoria ?? "",
                         tamanho: p.tamanho ?? "",
@@ -893,6 +897,7 @@ function FormularioProduto({
 
       const base = {
         nome: dados.nome.trim(),
+        slug: dados.slug.trim() ? gerarSlug(dados.slug) : null,
         categoria: dados.categoria.trim(),
         subcategoria: dados.subcategoria.trim() || null,
         preco: Number(dados.preco.replace(",", ".")) || 0,
@@ -922,8 +927,17 @@ function FormularioProduto({
 
 
       onSalvo();
-    } catch {
-      toast.error("Não foi possível salvar o produto");
+    } catch (erro) {
+      if (
+        erro &&
+        typeof erro === "object" &&
+        "code" in erro &&
+        (erro as { code?: string }).code === "23505"
+      ) {
+        toast.error("Esse link (slug) já está em uso por outro produto — escolha outro.");
+      } else {
+        toast.error("Não foi possível salvar o produto");
+      }
     } finally {
       setSalvando(false);
     }
@@ -947,6 +961,22 @@ function FormularioProduto({
               maxLength={120}
               onChange={(e) => setDados({ ...dados, nome: e.target.value })}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="p-slug">Link do produto</Label>
+            <Input
+              id="p-slug"
+              value={dados.slug}
+              maxLength={80}
+              placeholder={gerarSlug(dados.nome) || "gerado automaticamente"}
+              onChange={(e) => setDados({ ...dados, slug: e.target.value })}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              .../produto/{dados.slug.trim() ? gerarSlug(dados.slug) : gerarSlug(dados.nome) || "..."}
+              {dados.id
+                ? " — mudar isso quebra um link já compartilhado."
+                : " — deixe em branco pra gerar a partir do nome."}
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
