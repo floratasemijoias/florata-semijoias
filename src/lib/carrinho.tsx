@@ -4,6 +4,7 @@ import type { Produto } from "./florata";
 export type ItemSacola = {
   id: string;
   produtoId?: string;
+  slug?: string;
   categoria?: string | null;
   nome: string;
   tamanho: string | null;
@@ -65,6 +66,7 @@ export function SacolaProvider({ children }: { children: ReactNode }) {
             {
               id: chave,
               produtoId: produto.id,
+              slug: produto.slug,
               categoria: produto.categoria,
               nome: produto.nome,
               tamanho: tam,
