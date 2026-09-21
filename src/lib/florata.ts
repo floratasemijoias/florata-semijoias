@@ -12,6 +12,7 @@ export const TODOS_PRODUTOS = "Todos Produtos";
 export type Produto = {
   id: string;
   nome: string;
+  slug: string;
   categoria: string;
   subcategoria: string | null;
   tamanho: string | null;
@@ -23,6 +24,20 @@ export type Produto = {
   imagem_url: string | null;
   criado_em: string;
 };
+
+// Mesma lógica da geração automática no banco — usada aqui pra sanitizar um
+// slug digitado manualmente antes de salvar (o gatilho do banco só GERA um
+// slug quando o campo está vazio; não corrige um valor já preenchido).
+export function gerarSlug(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
 
 export function listarTamanhos(tamanho: string | null | undefined) {
   return (tamanho ?? "")
