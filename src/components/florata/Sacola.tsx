@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSacola, type ItemSacola } from "@/lib/carrinho";
+import { codificarItensResumo } from "@/lib/resumo-pedido";
 import {
   trackBeginCheckout,
   trackPedidoEnviado,
@@ -127,6 +128,8 @@ export function SacolaSheet({
         `• ${i.nome}${i.tamanho ? ` (${i.tamanho})` : ""} — ${i.quantidade}x ${formatarPreco(i.preco)}`,
     );
 
+    const linkResumo = `${window.location.origin}/resumo-pedido?itens=${codificarItensResumo(itens)}`;
+
     const mensagem = [
       "*Novo pedido Florata*",
       "",
@@ -134,6 +137,8 @@ export function SacolaSheet({
       ...linhas,
       "",
       `*Total:* ${formatarPreco(totalValor)}`,
+      "",
+      `*Ver resumo com fotos:* ${linkResumo}`,
       "",
       `*Cliente:* ${nome.trim()}`,
       `*WhatsApp:* ${whatsapp}`,
