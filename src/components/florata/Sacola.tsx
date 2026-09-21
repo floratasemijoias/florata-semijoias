@@ -27,7 +27,7 @@ type Pagamento = "Pix" | "Cartão de crédito" | "Cartão de débito" | "Dinheir
 
 function paraGtmItem(item: ItemSacola): GtmItem {
   return {
-    item_id: item.produtoId ?? item.id.split("::")[0]!,
+    item_id: item.slug ?? item.produtoId ?? item.id.split("::")[0]!,
     item_name: item.nome,
     price: item.preco,
     quantity: item.quantidade,
