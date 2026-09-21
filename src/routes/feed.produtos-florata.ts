@@ -33,6 +33,9 @@ export const Route = createFileRoute("/feed/produtos-florata")({
             const descricao =
               p.descricao?.trim() || `${p.nome} — ${p.categoria}. Semijoias Florata, prata 925.`;
             const preco = Number(p.preco).toFixed(2);
+            const tipoProduto = p.subcategoria
+              ? `${p.categoria} > ${p.subcategoria}`
+              : p.categoria;
             return `
     <item>
       <g:id>${escaparXml(p.slug)}</g:id>
@@ -44,6 +47,7 @@ export const Route = createFileRoute("/feed/produtos-florata")({
       <g:price>${preco} BRL</g:price>
       <g:condition>new</g:condition>
       <g:brand>Florata</g:brand>
+      <g:product_type>${escaparXml(tipoProduto)}</g:product_type>
       <g:google_product_category>Apparel &amp; Accessories &gt; Jewelry</g:google_product_category>
     </item>`;
           })
