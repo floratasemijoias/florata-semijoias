@@ -7,8 +7,8 @@ export function ProdutoCard({ produto }: { produto: Produto }) {
 
   return (
     <Link
-      to="/produto/$id"
-      params={{ id: produto.id }}
+      to="/produto/$slug"
+      params={{ slug: produto.slug }}
       className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-border bg-card text-left transition-shadow hover:shadow-soft"
     >
       <div className="relative aspect-4/5 w-full overflow-hidden bg-accent/40">
