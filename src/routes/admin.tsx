@@ -11,12 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminBanners } from "@/components/florata/AdminBanners";
 import { AdminRastreamento } from "@/components/florata/AdminRastreamento";
 import { ImportarProdutos } from "@/components/florata/ImportarProdutos";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { formatarPreco, gerarSlug, CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
+import { formatarPreco, gerarSlug, listarImagens, CATEGORIA_DESTAQUE, type Produto } from "@/lib/florata";
+import { GaleriaImagens, type ItemGaleria } from "@/components/florata/GaleriaImagens";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -120,6 +122,8 @@ type FormProduto = {
   visivel: boolean;
   quantidade: string;
   imagem_url: string | null;
+  imagens: string[];
+  video_url: string;
 };
 
 const vazio: FormProduto = {
@@ -135,6 +139,8 @@ const vazio: FormProduto = {
   quantidade: "1",
 
   imagem_url: null,
+  imagens: [],
+  video_url: "",
 };
 
 function Painel() {
@@ -276,6 +282,8 @@ function Painel() {
       visivel: p.visivel,
       quantidade: p.quantidade != null ? String(p.quantidade) : "",
       imagem_url: p.imagem_url,
+      imagens: listarImagens(p),
+      video_url: p.video_url ?? "",
     });
   }
 
@@ -331,7 +339,15 @@ function Painel() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <Tabs defaultValue="produtos">
+          <TabsList>
+            <TabsTrigger value="produtos">Produtos</TabsTrigger>
+            <TabsTrigger value="banners">Banners</TabsTrigger>
+            <TabsTrigger value="integracoes">Integrações</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="produtos" className="space-y-4 pt-4">
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
           <div className="relative">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -474,6 +490,8 @@ function Painel() {
                         visivel: p.visivel,
                         quantidade: p.quantidade != null ? String(p.quantidade) : "",
                         imagem_url: p.imagem_url,
+                        imagens: listarImagens(p),
+                        video_url: p.video_url ?? "",
                       })
                     }
                   >
@@ -492,12 +510,17 @@ function Painel() {
             ))}
           </ul>
         )}
-      </main>
+          </TabsContent>
 
-      <div className="mx-auto max-w-5xl space-y-6 px-4 pb-10">
-        <AdminBanners />
-        <AdminRastreamento />
-      </div>
+          <TabsContent value="banners" className="pt-4">
+            <AdminBanners />
+          </TabsContent>
+
+          <TabsContent value="integracoes" className="pt-4">
+            <AdminRastreamento />
+          </TabsContent>
+        </Tabs>
+      </main>
 
       <FormularioProduto
         form={form}
@@ -861,13 +884,13 @@ function FormularioProduto({
   onSalvo: () => void;
 }) {
   const [dados, setDados] = useState<FormProduto>(vazio);
-  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [itens, setItens] = useState<ItemGaleria[]>([]);
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     if (form) {
       setDados(form);
-      setArquivo(null);
+      setItens(form.imagens.map((url) => ({ status: "existente", url })));
     }
   }, [form]);
 
@@ -879,21 +902,26 @@ function FormularioProduto({
     }
     setSalvando(true);
     try {
-      let imagem_url = dados.imagem_url;
-
-      if (arquivo) {
-        const ext = arquivo.name.split(".").pop() ?? "jpg";
+      const imagens: string[] = [];
+      for (const item of itens) {
+        if (item.status === "existente") {
+          imagens.push(item.url);
+          continue;
+        }
+        const ext = item.file.name.split(".").pop() ?? "jpg";
         const caminho = `${crypto.randomUUID()}.${ext}`;
         const { error: erroUpload } = await supabase.storage
           .from("produtos")
-          .upload(caminho, arquivo, { contentType: arquivo.type });
+          .upload(caminho, item.file, { contentType: item.file.type });
         if (erroUpload) throw erroUpload;
         const { data: assinada, error: erroUrl } = await supabase.storage
           .from("produtos")
           .createSignedUrl(caminho, 60 * 60 * 24 * 365 * 10);
         if (erroUrl) throw erroUrl;
-        imagem_url = assinada.signedUrl;
+        imagens.push(assinada.signedUrl);
       }
+
+      const imagem_url = imagens[0] ?? null;
 
       const base = {
         nome: dados.nome.trim(),
@@ -906,6 +934,8 @@ function FormularioProduto({
         visivel: dados.visivel,
         quantidade: dados.quantidade ? Number(dados.quantidade) : null,
         imagem_url,
+        imagens,
+        video_url: dados.video_url.trim() || null,
       };
 
       const tamanhos = dados.tamanho
@@ -1048,28 +1078,21 @@ function FormularioProduto({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="p-foto">Foto</Label>
+            <Label>Fotos</Label>
+            <GaleriaImagens itens={itens} onChange={setItens} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="p-video">Vídeo (link do YouTube ou Drive)</Label>
             <Input
-              id="p-foto"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const f = e.target.files?.[0] ?? null;
-                setArquivo(f);
-                if (f) {
-                  const nomeArquivo = f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
-                  if (nomeArquivo) setDados((d) => ({ ...d, nome: nomeArquivo }));
-                }
-              }}
-
+              id="p-video"
+              value={dados.video_url}
+              placeholder="Opcional"
+              onChange={(e) => setDados({ ...dados, video_url: e.target.value })}
             />
-            {dados.imagem_url && !arquivo && (
-              <img
-                src={dados.imagem_url}
-                alt="Foto atual"
-                className="mt-2 h-24 w-24 rounded-md object-cover"
-              />
-            )}
+            <p className="text-[11px] text-muted-foreground">
+              Cole o link normal do YouTube ou do Google Drive (com o Drive, o arquivo precisa
+              estar compartilhado como "Qualquer pessoa com o link pode ver").
+            </p>
           </div>
           <div className="flex items-center justify-between rounded-md border border-border p-3">
             <Label htmlFor="p-disp">Disponível para venda</Label>
