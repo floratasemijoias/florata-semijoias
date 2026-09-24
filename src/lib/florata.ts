@@ -47,7 +47,7 @@ export function gerarEmbedVideo(url: string | null | undefined): string | null {
   if (!url) return null;
   const yt =
     url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{6,})/) ?? null;
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}?modestbranding=1&rel=0&playsinline=1`;
   const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
   return null;
