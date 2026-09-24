@@ -8,7 +8,7 @@ import { BarraSacola, SacolaSheet } from "@/components/florata/Sacola";
 import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { supabase } from "@/integrations/supabase/client";
 import { useSacola } from "@/lib/carrinho";
-import { formatarPreco, listarTamanhos, type Produto } from "@/lib/florata";
+import { formatarPreco, gerarEmbedVideo, listarImagens, listarTamanhos, type Produto } from "@/lib/florata";
 import { trackAddToCart, trackViewItem } from "@/lib/gtm";
 
 export const Route = createFileRoute("/produto/$slug")({
@@ -53,6 +53,9 @@ function ProdutoPagina() {
   const { adicionar } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [qtd, setQtd] = useState(1);
+  const imagens = useMemo(() => listarImagens(produto ?? { imagem_url: null }), [produto]);
+  const [imagemAtiva, setImagemAtiva] = useState(0);
+  const embedVideo = useMemo(() => gerarEmbedVideo(produto?.video_url), [produto?.video_url]);
   const tamanhos = useMemo(() => listarTamanhos(produto?.tamanho), [produto?.tamanho]);
   const [tamanho, setTamanho] = useState<string | null>(
     tamanhos.length === 1 ? tamanhos[0]! : null,
@@ -128,22 +131,55 @@ function ProdutoPagina() {
         </Link>
 
         <div className="md:grid md:grid-cols-2 md:items-start md:gap-10">
-        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-accent/40 md:sticky md:top-6">
-          {produto.imagem_url ? (
-            <img
-              src={produto.imagem_url}
-              alt={produto.nome}
-              className={`h-full w-full object-cover ${esgotado ? "opacity-50 grayscale" : ""}`}
-            />
-          ) : (
-            <span className="grid h-full w-full place-items-center text-muted-foreground">
-              <Flower2 className="h-10 w-10" />
-            </span>
+        <div className="md:sticky md:top-6">
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-accent/40">
+            {imagens.length > 0 ? (
+              <img
+                src={imagens[imagemAtiva] ?? imagens[0]}
+                alt={produto.nome}
+                className={`h-full w-full object-cover ${esgotado ? "opacity-50 grayscale" : ""}`}
+              />
+            ) : (
+              <span className="grid h-full w-full place-items-center text-muted-foreground">
+                <Flower2 className="h-10 w-10" />
+              </span>
+            )}
+            {esgotado && (
+              <span className="absolute top-3 left-3 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold tracking-widest text-primary-foreground uppercase">
+                Esgotado
+              </span>
+            )}
+          </div>
+
+          {imagens.length > 1 && (
+            <div className="mt-2 flex gap-2 overflow-x-auto">
+              {imagens.map((url, idx) => (
+                <button
+                  key={url + idx}
+                  type="button"
+                  onClick={() => setImagemAtiva(idx)}
+                  aria-label={`Ver foto ${idx + 1}`}
+                  aria-pressed={imagemAtiva === idx}
+                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
+                    imagemAtiva === idx ? "border-primary" : "border-transparent opacity-70"
+                  }`}
+                >
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
-          {esgotado && (
-            <span className="absolute top-3 left-3 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold tracking-widest text-primary-foreground uppercase">
-              Esgotado
-            </span>
+
+          {embedVideo && (
+            <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl bg-black">
+              <iframe
+                src={embedVideo}
+                title={`Vídeo de ${produto.nome}`}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           )}
         </div>
 
