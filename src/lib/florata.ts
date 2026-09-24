@@ -53,6 +53,15 @@ export function gerarEmbedVideo(url: string | null | undefined): string | null {
   return null;
 }
 
+// Miniatura real do vídeo pra usar na barra de seleção — o YouTube fornece
+// isso de graça por ID; o Drive não tem um jeito público simples, então
+// nesse caso a página mostra um ícone de play no lugar de uma miniatura.
+export function gerarThumbVideo(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{6,})/);
+  return yt ? `https://img.youtube.com/vi/${yt[1]}/hqdefault.jpg` : null;
+}
+
 // Mesma lógica da geração automática no banco — usada aqui pra sanitizar um
 // slug digitado manualmente antes de salvar (o gatilho do banco só GERA um
 // slug quando o campo está vazio; não corrige um valor já preenchido).
