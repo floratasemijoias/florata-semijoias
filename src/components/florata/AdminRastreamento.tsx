@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ export function AdminRastreamento() {
   const queryClient = useQueryClient();
   const [valor, setValor] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [destravado, setDestravado] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["settings-admin"],
@@ -34,6 +36,13 @@ export function AdminRastreamento() {
       toast.error("ID inválido. Use o formato GTM-XXXXXXX");
       return;
     }
+    if (
+      !confirm(
+        "Tem certeza que quer alterar o Container ID do GTM? Isso muda o rastreamento de todo o site (pixel, Google Ads, eventos).",
+      )
+    ) {
+      return;
+    }
     setSalvando(true);
     const { error } = await supabase
       .from("settings")
@@ -44,6 +53,7 @@ export function AdminRastreamento() {
       return;
     }
     setValor(limpo);
+    setDestravado(false);
     toast.success(limpo ? "Rastreamento atualizado" : "Rastreamento desativado");
     queryClient.invalidateQueries({ queryKey: ["settings-admin"] });
     queryClient.invalidateQueries({ queryKey: ["gtm-container-id"] });
@@ -63,14 +73,32 @@ export function AdminRastreamento() {
           <Input
             id="gtm"
             value={valor}
+            disabled={!destravado}
             onChange={(e) => setValor(e.target.value)}
             placeholder="GTM-XXXXXXX"
           />
         </div>
-        <Button variant="gold" onClick={salvar} disabled={salvando}>
-          {salvando ? "Salvando..." : "Salvar"}
-        </Button>
+        {destravado ? (
+          <Button variant="gold" onClick={salvar} disabled={salvando}>
+            {salvando ? "Salvando..." : "Salvar"}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setDestravado(true)}
+          >
+            <Lock className="h-4 w-4" /> Destravar edição
+          </Button>
+        )}
       </div>
+
+      {destravado && (
+        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Unlock className="h-3 w-3" /> Campo destravado — cuidado, essa alteração afeta o
+          rastreamento de todo o site.
+        </p>
+      )}
 
       <p className="mt-4 rounded-md bg-muted p-3 text-xs leading-relaxed text-muted-foreground">
         Eventos enviados ao dataLayer: <strong>page_view</strong>, <strong>view_item</strong>,{" "}
@@ -82,3 +110,4 @@ export function AdminRastreamento() {
     </section>
   );
 }
+
