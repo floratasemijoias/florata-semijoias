@@ -55,12 +55,14 @@ export type Database = {
           disponivel: boolean
           id: string
           imagem_url: string | null
+          imagens: Json
           nome: string
           preco: number
           quantidade: number | null
           slug: string
           subcategoria: string | null
           tamanho: string | null
+          video_url: string | null
           visivel: boolean
         }
         Insert: {
@@ -70,12 +72,14 @@ export type Database = {
           disponivel?: boolean
           id?: string
           imagem_url?: string | null
+          imagens?: Json
           nome: string
           preco?: number
           quantidade?: number | null
           slug?: string
           subcategoria?: string | null
           tamanho?: string | null
+          video_url?: string | null
           visivel?: boolean
         }
         Update: {
@@ -85,12 +89,14 @@ export type Database = {
           disponivel?: boolean
           id?: string
           imagem_url?: string | null
+          imagens?: Json
           nome?: string
           preco?: number
           quantidade?: number | null
           slug?: string
           subcategoria?: string | null
           tamanho?: string | null
+          video_url?: string | null
           visivel?: boolean
         }
         Relationships: []
