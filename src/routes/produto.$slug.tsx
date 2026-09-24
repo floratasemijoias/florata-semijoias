@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Flower2, Minus, Play, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,37 @@ function ProdutoPagina() {
     return lista;
   }, [imagens, embedVideo, thumbVideo]);
   const [midiaAtiva, setMidiaAtiva] = useState(0);
+  const [zoomHover, setZoomHover] = useState(false);
+  const [zoomMobile, setZoomMobile] = useState(false);
+  const [origemZoom, setOrigemZoom] = useState({ x: 50, y: 50 });
+  const ultimoToqueRef = useRef(0);
+
+  useEffect(() => {
+    setZoomHover(false);
+    setZoomMobile(false);
+  }, [midiaAtiva]);
+
+  function moverMouseImagem(e: React.MouseEvent<HTMLImageElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setOrigemZoom({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }
+
+  function tocarImagem(e: React.TouchEvent<HTMLImageElement>) {
+    const agora = Date.now();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const toque = e.changedTouches[0];
+    if (agora - ultimoToqueRef.current < 300) {
+      setOrigemZoom({
+        x: ((toque.clientX - rect.left) / rect.width) * 100,
+        y: ((toque.clientY - rect.top) / rect.height) * 100,
+      });
+      setZoomMobile((z) => !z);
+    }
+    ultimoToqueRef.current = agora;
+  }
   const tamanhos = useMemo(() => listarTamanhos(produto?.tamanho), [produto?.tamanho]);
   const [tamanho, setTamanho] = useState<string | null>(
     tamanhos.length === 1 ? tamanhos[0]! : null,
@@ -167,7 +198,19 @@ function ProdutoPagina() {
               <img
                 src={(midias[midiaAtiva] as { url: string }).url}
                 alt={produto.nome}
-                className={`h-full w-full object-cover ${esgotado ? "opacity-50 grayscale" : ""}`}
+                onMouseEnter={() => setZoomHover(true)}
+                onMouseLeave={() => setZoomHover(false)}
+                onMouseMove={moverMouseImagem}
+                onTouchEnd={tocarImagem}
+                style={{
+                  touchAction: "manipulation",
+                  ...(zoomHover || zoomMobile
+                    ? { transform: "scale(2)", transformOrigin: `${origemZoom.x}% ${origemZoom.y}%` }
+                    : {}),
+                }}
+                className={`h-full w-full object-cover transition-transform duration-150 ${
+                  esgotado ? "opacity-50 grayscale" : "cursor-zoom-in"
+                }`}
               />
             )}
             {esgotado && midias[midiaAtiva]?.tipo !== "video" && (
