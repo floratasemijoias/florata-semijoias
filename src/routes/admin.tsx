@@ -148,6 +148,9 @@ function Painel() {
   const [form, setForm] = useState<FormProduto | null>(null);
   const [busca, setBusca] = useState("");
   const [categoria, setCategoria] = useState("todas");
+  const [subcategoria, setSubcategoria] = useState("todas");
+  const [visibilidade, setVisibilidade] = useState("todos");
+  const [disponibilidade, setDisponibilidade] = useState("todos");
   const [ordem, setOrdem] = useState("recentes");
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [lote, setLote] = useState<string[] | null>(null);
@@ -169,6 +172,15 @@ function Painel() {
     [produtos],
   );
 
+  // Subcategorias da categoria escolhida (ou de todos os produtos, se "todas").
+  const subcategorias = useMemo(() => {
+    const base =
+      categoria === "todas"
+        ? (produtos ?? [])
+        : (produtos ?? []).filter((p) => p.categoria === categoria);
+    return Array.from(new Set(base.map((p) => p.subcategoria).filter((s): s is string => !!s))).sort();
+  }, [produtos, categoria]);
+
   const listaFiltrada = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     let itens = (produtos ?? []).filter((p) => {
@@ -178,7 +190,14 @@ function Painel() {
         p.categoria.toLowerCase().includes(termo) ||
         (p.descricao ?? "").toLowerCase().includes(termo);
       const casaCategoria = categoria === "todas" || p.categoria === categoria;
-      return casaBusca && casaCategoria;
+      const casaSubcategoria = subcategoria === "todas" || p.subcategoria === subcategoria;
+      const casaVisibilidade =
+        visibilidade === "todos" ||
+        (visibilidade === "visiveis" ? p.visivel : !p.visivel);
+      const casaDisponibilidade =
+        disponibilidade === "todos" ||
+        (disponibilidade === "disponiveis" ? p.disponivel : !p.disponivel);
+      return casaBusca && casaCategoria && casaSubcategoria && casaVisibilidade && casaDisponibilidade;
     });
     itens = [...itens];
     if (ordem === "preco-asc") itens.sort((a, b) => Number(a.preco) - Number(b.preco));
@@ -186,7 +205,7 @@ function Painel() {
     else if (ordem === "az") itens.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
     else if (ordem === "za") itens.sort((a, b) => b.nome.localeCompare(a.nome, "pt-BR"));
     return itens;
-  }, [produtos, busca, categoria, ordem]);
+  }, [produtos, busca, categoria, subcategoria, visibilidade, disponibilidade, ordem]);
 
   function invalidar() {
     queryClient.invalidateQueries({ queryKey: ["produtos-admin"] });
@@ -347,8 +366,7 @@ function Painel() {
           </TabsList>
 
           <TabsContent value="produtos" className="space-y-4 pt-4">
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-          <div className="relative">
+        <div className="relative">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={busca}
@@ -357,11 +375,16 @@ function Painel() {
               className="pl-9"
               aria-label="Buscar produtos"
             />
-          </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-2">
           <select
             aria-label="Filtrar por categoria"
             value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
+            onChange={(e) => {
+              setCategoria(e.target.value);
+              setSubcategoria("todas");
+            }}
             className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
           >
             <option value="todas">Todas as categorias</option>
@@ -370,6 +393,41 @@ function Painel() {
                 {c}
               </option>
             ))}
+          </select>
+          {subcategorias.length > 0 && (
+            <select
+              aria-label="Filtrar por subcategoria"
+              value={subcategoria}
+              onChange={(e) => setSubcategoria(e.target.value)}
+              className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            >
+              <option value="todas">Todas as subcategorias</option>
+              {subcategorias.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          )}
+          <select
+            aria-label="Filtrar por visibilidade"
+            value={visibilidade}
+            onChange={(e) => setVisibilidade(e.target.value)}
+            className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="todos">Visíveis e ocultos</option>
+            <option value="visiveis">Só visíveis</option>
+            <option value="ocultos">Só ocultos da loja</option>
+          </select>
+          <select
+            aria-label="Filtrar por disponibilidade"
+            value={disponibilidade}
+            onChange={(e) => setDisponibilidade(e.target.value)}
+            className="h-9 cursor-pointer rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          >
+            <option value="todos">Disponíveis e esgotados</option>
+            <option value="disponiveis">Só disponíveis</option>
+            <option value="esgotados">Só esgotados</option>
           </select>
           <select
             aria-label="Ordenar produtos"
