@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Flower2, Minus, Plus, Share2 } from "lucide-react";
+import { ArrowLeft, Flower2, Minus, Play, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/florata/Header";
@@ -8,7 +8,14 @@ import { BarraSacola, SacolaSheet } from "@/components/florata/Sacola";
 import { WhatsappFab } from "@/components/florata/WhatsappFab";
 import { supabase } from "@/integrations/supabase/client";
 import { useSacola } from "@/lib/carrinho";
-import { formatarPreco, gerarEmbedVideo, listarImagens, listarTamanhos, type Produto } from "@/lib/florata";
+import {
+  formatarPreco,
+  gerarEmbedVideo,
+  gerarThumbVideo,
+  listarImagens,
+  listarTamanhos,
+  type Produto,
+} from "@/lib/florata";
 import { trackAddToCart, trackViewItem } from "@/lib/gtm";
 
 export const Route = createFileRoute("/produto/$slug")({
@@ -48,14 +55,24 @@ export const Route = createFileRoute("/produto/$slug")({
   component: ProdutoPagina,
 });
 
+type ItemMidia =
+  | { tipo: "imagem"; url: string }
+  | { tipo: "video"; embed: string; thumb: string | null };
+
 function ProdutoPagina() {
   const { produto, erro } = Route.useLoaderData();
   const { adicionar } = useSacola();
   const [sacolaAberta, setSacolaAberta] = useState(false);
   const [qtd, setQtd] = useState(1);
   const imagens = useMemo(() => listarImagens(produto ?? { imagem_url: null }), [produto]);
-  const [imagemAtiva, setImagemAtiva] = useState(0);
   const embedVideo = useMemo(() => gerarEmbedVideo(produto?.video_url), [produto?.video_url]);
+  const thumbVideo = useMemo(() => gerarThumbVideo(produto?.video_url), [produto?.video_url]);
+  const midias = useMemo<ItemMidia[]>(() => {
+    const lista: ItemMidia[] = imagens.map((url) => ({ tipo: "imagem", url }));
+    if (embedVideo) lista.push({ tipo: "video", embed: embedVideo, thumb: thumbVideo });
+    return lista;
+  }, [imagens, embedVideo, thumbVideo]);
+  const [midiaAtiva, setMidiaAtiva] = useState(0);
   const tamanhos = useMemo(() => listarTamanhos(produto?.tamanho), [produto?.tamanho]);
   const [tamanho, setTamanho] = useState<string | null>(
     tamanhos.length === 1 ? tamanhos[0]! : null,
@@ -133,52 +150,60 @@ function ProdutoPagina() {
         <div className="md:grid md:grid-cols-2 md:items-start md:gap-10">
         <div className="md:sticky md:top-6">
           <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-accent/40">
-            {imagens.length > 0 ? (
-              <img
-                src={imagens[imagemAtiva] ?? imagens[0]}
-                alt={produto.nome}
-                className={`h-full w-full object-cover ${esgotado ? "opacity-50 grayscale" : ""}`}
-              />
-            ) : (
+            {midias.length === 0 ? (
               <span className="grid h-full w-full place-items-center text-muted-foreground">
                 <Flower2 className="h-10 w-10" />
               </span>
+            ) : midias[midiaAtiva]?.tipo === "video" ? (
+              <iframe
+                key={(midias[midiaAtiva] as { embed: string }).embed}
+                src={(midias[midiaAtiva] as { embed: string }).embed}
+                title={`Vídeo de ${produto.nome}`}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <img
+                src={(midias[midiaAtiva] as { url: string }).url}
+                alt={produto.nome}
+                className={`h-full w-full object-cover ${esgotado ? "opacity-50 grayscale" : ""}`}
+              />
             )}
-            {esgotado && (
+            {esgotado && midias[midiaAtiva]?.tipo !== "video" && (
               <span className="absolute top-3 left-3 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold tracking-widest text-primary-foreground uppercase">
                 Esgotado
               </span>
             )}
           </div>
 
-          {imagens.length > 1 && (
+          {midias.length > 1 && (
             <div className="mt-2 flex gap-2 overflow-x-auto">
-              {imagens.map((url, idx) => (
+              {midias.map((item, idx) => (
                 <button
-                  key={url + idx}
+                  key={idx}
                   type="button"
-                  onClick={() => setImagemAtiva(idx)}
-                  aria-label={`Ver foto ${idx + 1}`}
-                  aria-pressed={imagemAtiva === idx}
-                  className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 transition-colors ${
-                    imagemAtiva === idx ? "border-primary" : "border-transparent opacity-70"
+                  onClick={() => setMidiaAtiva(idx)}
+                  aria-label={item.tipo === "video" ? "Ver vídeo" : `Ver foto ${idx + 1}`}
+                  aria-pressed={midiaAtiva === idx}
+                  className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 bg-accent/40 transition-colors ${
+                    midiaAtiva === idx ? "border-primary" : "border-transparent opacity-70"
                   }`}
                 >
-                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  {item.tipo === "video" ? (
+                    <>
+                      {item.thumb && (
+                        <img src={item.thumb} alt="" className="h-full w-full object-cover" />
+                      )}
+                      <span className="absolute inset-0 grid place-items-center bg-black/25">
+                        <Play className="h-5 w-5 fill-white text-white" />
+                      </span>
+                    </>
+                  ) : (
+                    <img src={item.url} alt="" className="h-full w-full object-cover" />
+                  )}
                 </button>
               ))}
-            </div>
-          )}
-
-          {embedVideo && (
-            <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl bg-black">
-              <iframe
-                src={embedVideo}
-                title={`Vídeo de ${produto.nome}`}
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
             </div>
           )}
         </div>
