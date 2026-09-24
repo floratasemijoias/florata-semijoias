@@ -22,8 +22,36 @@ export type Produto = {
   quantidade: number | null;
   descricao: string | null;
   imagem_url: string | null;
+  imagens: string[];
+  video_url: string | null;
   criado_em: string;
 };
+
+// Lista de imagens pra exibir na galeria. Produtos antigos (de antes da
+// galeria existir) só têm imagem_url — aqui eles continuam funcionando,
+// aparecendo com uma foto só.
+export function listarImagens(produto: {
+  imagem_url: string | null;
+  imagens?: unknown;
+}): string[] {
+  if (Array.isArray(produto.imagens) && produto.imagens.length > 0) {
+    return produto.imagens.filter((u): u is string => typeof u === "string" && !!u);
+  }
+  return produto.imagem_url ? [produto.imagem_url] : [];
+}
+
+// Converte um link de YouTube ou Google Drive num link de "embed" (pra tocar
+// dentro de um <iframe> na página do produto). Se não reconhecer o formato,
+// retorna null e a página mostra um link normal em vez de tentar embutir.
+export function gerarEmbedVideo(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const yt =
+    url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{6,})/) ?? null;
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  const drive = url.match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
+  return null;
+}
 
 // Mesma lógica da geração automática no banco — usada aqui pra sanitizar um
 // slug digitado manualmente antes de salvar (o gatilho do banco só GERA um
