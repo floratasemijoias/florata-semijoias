@@ -198,6 +198,9 @@ function ProdutoPagina() {
               <img
                 src={(midias[midiaAtiva] as { url: string }).url}
                 alt={produto.nome}
+                width={1000}
+                height={1000}
+                decoding="async"
                 onMouseEnter={() => setZoomHover(true)}
                 onMouseLeave={() => setZoomHover(false)}
                 onMouseMove={moverMouseImagem}
@@ -236,14 +239,30 @@ function ProdutoPagina() {
                   {item.tipo === "video" ? (
                     <>
                       {item.thumb && (
-                        <img src={item.thumb} alt="" className="h-full w-full object-cover" />
+                        <img
+                          src={item.thumb}
+                          alt=""
+                          width={64}
+                          height={64}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover"
+                        />
                       )}
                       <span className="absolute inset-0 grid place-items-center bg-black/25">
                         <Play className="h-5 w-5 fill-white text-white" />
                       </span>
                     </>
                   ) : (
-                    <img src={item.url} alt="" className="h-full w-full object-cover" />
+                    <img
+                      src={item.url}
+                      alt=""
+                      width={64}
+                      height={64}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
                   )}
                 </button>
               ))}

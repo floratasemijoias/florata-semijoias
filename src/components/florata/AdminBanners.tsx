@@ -95,6 +95,9 @@ export function AdminBanners() {
               <img
                 src={b.imagem_url}
                 alt={b.alt ?? "Banner"}
+                width={96}
+                height={56}
+                loading="lazy"
                 className="h-14 w-24 shrink-0 rounded-md object-cover"
               />
               <div className="min-w-0 flex-1">
@@ -237,6 +240,9 @@ function FormularioBanner({
               <img
                 src={dados.imagem_url}
                 alt="Banner atual"
+                width={384}
+                height={96}
+                loading="lazy"
                 className="mt-2 h-24 w-full rounded-md object-cover"
               />
             )}

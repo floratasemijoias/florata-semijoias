@@ -966,11 +966,13 @@ function FormularioProduto({
           imagens.push(item.url);
           continue;
         }
-        const ext = item.file.name.split(".").pop() ?? "jpg";
-        const caminho = `${crypto.randomUUID()}.${ext}`;
+        const caminho = `${crypto.randomUUID()}.webp`;
         const { error: erroUpload } = await supabase.storage
           .from("produtos")
-          .upload(caminho, item.file, { contentType: item.file.type });
+          .upload(caminho, item.file, {
+            contentType: "image/webp",
+            cacheControl: "31536000",
+          });
         if (erroUpload) throw erroUpload;
         const { data: assinada, error: erroUrl } = await supabase.storage
           .from("produtos")
