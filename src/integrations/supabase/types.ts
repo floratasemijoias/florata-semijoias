@@ -76,7 +76,7 @@ export type Database = {
           nome: string
           preco?: number
           quantidade?: number | null
-          slug?: string
+          slug: string
           subcategoria?: string | null
           tamanho?: string | null
           video_url?: string | null
