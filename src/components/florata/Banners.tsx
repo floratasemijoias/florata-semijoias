@@ -61,12 +61,16 @@ export function Banners() {
     <section className="border-b border-border">
       <Carousel setApi={setApi} opts={{ loop: true }}>
         <CarouselContent className="ml-0">
-          {slides.map((b) => {
+          {slides.map((b, index) => {
             const img = (
               <img
                 src={b.imagem_url}
                 alt={b.alt ?? "Banner Florata"}
-                loading="lazy"
+                width={1600}
+                height={900}
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "low"}
+                decoding="async"
                 className="h-full w-full object-cover"
               />
             );

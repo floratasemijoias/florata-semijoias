@@ -11,7 +11,14 @@ export function Header({ onAbrirSacola }: { onAbrirSacola: () => void }) {
       <div className="mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3">
         <Link to="/" className="flex min-w-0 items-center gap-3">
           <span className="h-11 w-11 shrink-0 overflow-hidden rounded-full border border-gold/50">
-            <img src={logo.url} alt="Logo Florata" className="h-full w-full object-cover" />
+            <img
+              src={logo.url}
+              alt="Logo Florata"
+              width={44}
+              height={44}
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           </span>
           <span className="min-w-0">
             <span className="block truncate font-display text-2xl leading-none font-semibold text-primary">

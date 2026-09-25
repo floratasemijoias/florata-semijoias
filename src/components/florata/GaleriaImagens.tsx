@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Plus, Star, X } from "lucide-react";
 import { toast } from "sonner";
+import { comprimirImagemProduto } from "@/lib/comprimir-imagem";
 
 export type ItemGaleria =
   | { status: "existente"; url: string }
@@ -19,7 +20,7 @@ export function GaleriaImagens({
   const inputRef = useRef<HTMLInputElement>(null);
   const [arrastando, setArrastando] = useState(false);
 
-  function adicionarArquivos(arquivos: FileList | File[]) {
+  async function adicionarArquivos(arquivos: FileList | File[]) {
     const novos: ItemGaleria[] = [];
     for (const file of Array.from(arquivos)) {
       if (!file.type.startsWith("image/")) {
@@ -30,13 +31,23 @@ export function GaleriaImagens({
         toast.error(`"${file.name}" passa de 50MB e não foi adicionada`);
         continue;
       }
-      novos.push({ status: "novo", file, preview: URL.createObjectURL(file) });
+      try {
+        const comprimida = await comprimirImagemProduto(file);
+        novos.push({
+          status: "novo",
+          file: comprimida,
+          preview: URL.createObjectURL(comprimida),
+        });
+      } catch {
+        toast.error(`Não foi possível preparar "${file.name}"`);
+      }
     }
     if (novos.length) onChange([...itens, ...novos]);
   }
 
   function remover(idx: number) {
     const item = itens[idx];
+    if (!item) return;
     if (item.status === "novo") URL.revokeObjectURL(item.preview);
     onChange(itens.filter((_, i) => i !== idx));
   }
@@ -45,6 +56,7 @@ export function GaleriaImagens({
     if (idx === 0) return;
     const copia = [...itens];
     const [item] = copia.splice(idx, 1);
+    if (!item) return;
     copia.unshift(item);
     onChange(copia);
   }
@@ -59,7 +71,14 @@ export function GaleriaImagens({
               key={idx}
               className="group relative aspect-square overflow-hidden rounded-md border border-border bg-accent/40"
             >
-              <img src={src} alt="" className="h-full w-full object-cover" />
+              <img
+                src={src}
+                alt=""
+                width={200}
+                height={200}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
               {idx === 0 ? (
                 <span className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-semibold text-primary-foreground">
                   <Star className="h-2.5 w-2.5 fill-current" /> Capa
@@ -101,7 +120,7 @@ export function GaleriaImagens({
           onDrop={(e) => {
             e.preventDefault();
             setArrastando(false);
-            if (e.dataTransfer.files?.length) adicionarArquivos(e.dataTransfer.files);
+            if (e.dataTransfer.files?.length) void adicionarArquivos(e.dataTransfer.files);
           }}
           className={`grid aspect-square cursor-pointer place-items-center rounded-md border border-dashed transition-colors ${
             arrastando ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
@@ -117,15 +136,15 @@ export function GaleriaImagens({
         accept="image/*"
         multiple
         onChange={(e) => {
-          if (e.target.files?.length) adicionarArquivos(e.target.files);
+          if (e.target.files?.length) void adicionarArquivos(e.target.files);
           e.target.value = "";
         }}
         className="hidden"
       />
 
       <p className="text-[11px] text-muted-foreground">
-        Clique ou arraste para adicionar fotos (até 50MB cada). A primeira é a capa exibida no
-        catálogo — passe o mouse numa outra e clique em "Tornar capa" pra trocar.
+        Clique ou arraste para adicionar fotos. Elas são reduzidas para até 1000 px e convertidas
+        automaticamente para WebP. A primeira é a capa exibida no catálogo.
       </p>
     </div>
   );

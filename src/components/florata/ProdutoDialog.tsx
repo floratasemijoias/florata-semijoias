@@ -46,6 +46,10 @@ export function ProdutoDialog({
                 <img
                   src={produto.imagem_url}
                   alt={produto.nome}
+                  width={1000}
+                  height={1000}
+                  loading="lazy"
+                  decoding="async"
                   className={`h-full w-full object-cover ${esgotado ? "opacity-50 grayscale" : ""}`}
                 />
               ) : (

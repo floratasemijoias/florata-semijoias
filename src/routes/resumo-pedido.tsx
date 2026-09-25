@@ -74,6 +74,10 @@ function ResumoPedido() {
                       <img
                         src={l.produto.imagem_url}
                         alt={l.produto.nome}
+                        width={64}
+                        height={64}
+                        loading="lazy"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     ) : (
