@@ -11,6 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as PersonalizadosRouteImport } from './routes/personalizados'
+import { Route as ResumoPedidoRouteImport } from './routes/resumo-pedido'
+import { Route as FeedProdutosFlorataRouteImport } from './routes/feed.produtos-florata'
+import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +26,86 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PersonalizadosRoute = PersonalizadosRouteImport.update({
+  id: '/personalizados',
+  path: '/personalizados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResumoPedidoRoute = ResumoPedidoRouteImport.update({
+  id: '/resumo-pedido',
+  path: '/resumo-pedido',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedProdutosFlorataRoute = FeedProdutosFlorataRouteImport.update({
+  id: '/feed/produtos-florata',
+  path: '/feed/produtos-florata',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutoSlugRoute = ProdutoSlugRouteImport.update({
+  id: '/produto/$slug',
+  path: '/produto/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/personalizados': typeof PersonalizadosRoute
+  '/resumo-pedido': typeof ResumoPedidoRoute
+  '/feed/produtos-florata': typeof FeedProdutosFlorataRoute
+  '/produto/$slug': typeof ProdutoSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/personalizados': typeof PersonalizadosRoute
+  '/resumo-pedido': typeof ResumoPedidoRoute
+  '/feed/produtos-florata': typeof FeedProdutosFlorataRoute
+  '/produto/$slug': typeof ProdutoSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/personalizados': typeof PersonalizadosRoute
+  '/resumo-pedido': typeof ResumoPedidoRoute
+  '/feed/produtos-florata': typeof FeedProdutosFlorataRoute
+  '/produto/$slug': typeof ProdutoSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/personalizados'
+    | '/resumo-pedido'
+    | '/feed/produtos-florata'
+    | '/produto/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin'
-  id: '__root__' | '/' | '/admin'
+  to:
+    | '/'
+    | '/admin'
+    | '/personalizados'
+    | '/resumo-pedido'
+    | '/feed/produtos-florata'
+    | '/produto/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/personalizados'
+    | '/resumo-pedido'
+    | '/feed/produtos-florata'
+    | '/produto/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  PersonalizadosRoute: typeof PersonalizadosRoute
+  ResumoPedidoRoute: typeof ResumoPedidoRoute
+  FeedProdutosFlorataRoute: typeof FeedProdutosFlorataRoute
+  ProdutoSlugRoute: typeof ProdutoSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +124,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/personalizados': {
+      id: '/personalizados'
+      path: '/personalizados'
+      fullPath: '/personalizados'
+      preLoaderRoute: typeof PersonalizadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resumo-pedido': {
+      id: '/resumo-pedido'
+      path: '/resumo-pedido'
+      fullPath: '/resumo-pedido'
+      preLoaderRoute: typeof ResumoPedidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed/produtos-florata': {
+      id: '/feed/produtos-florata'
+      path: '/feed/produtos-florata'
+      fullPath: '/feed/produtos-florata'
+      preLoaderRoute: typeof FeedProdutosFlorataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produto/$slug': {
+      id: '/produto/$slug'
+      path: '/produto/$slug'
+      fullPath: '/produto/$slug'
+      preLoaderRoute: typeof ProdutoSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  PersonalizadosRoute: PersonalizadosRoute,
+  ResumoPedidoRoute: ResumoPedidoRoute,
+  FeedProdutosFlorataRoute: FeedProdutosFlorataRoute,
+  ProdutoSlugRoute: ProdutoSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
